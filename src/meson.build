@@ -56,7 +56,7 @@ endif
 explicit_libs = ''
 if host_system == 'windows'
     # Newer versions of Ruby will refuse to link without these
-    explicit_libs += 'libmsvcrt;libgcc;libmingwex;libgmp;'
+    explicit_libs += 'libucrt;libgcc;libmingwex;libgmp;'
 endif
 if build_static == true
     if host_system == 'windows'
