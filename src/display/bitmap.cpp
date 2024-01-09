@@ -644,7 +644,7 @@ Bitmap::Bitmap(const char *filename)
 
     SDL_Surface *imgSurf = handler.surface;
 
-    initFromSurface(imgSurf, hiresBitmap, false);
+    initFromSurface(imgSurf, hiresBitmap, hiresBitmap && hiresBitmap->isMega());
 }
 
 Bitmap::Bitmap(int width, int height, bool isHires)
@@ -663,7 +663,7 @@ Bitmap::Bitmap(int width, int height, bool isHires)
         hiresBitmap->setLores(this);
     }
 
-    if (width > glState.caps.maxTexSize || height > glState.caps.maxTexSize)
+    if (width > glState.caps.maxTexSize || height > glState.caps.maxTexSize || (hiresBitmap && hiresBitmap->isMega()))
     {
         p = new BitmapPrivate(this);
         SDL_Surface *surface = SDL_CreateRGBSurface(0, width, height, p->format->BitsPerPixel,
