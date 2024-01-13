@@ -58,10 +58,9 @@ jobs:
         shell: msys2 {0}
         run: |
           source windows/vars.sh
-          meson setup build
+          meson setup build -Dbuildtype=debug
           cd build
           ninja
-          strip ./mkxp-z.exe
 
       - name: Discord
         uses: actions/checkout@v4
@@ -155,7 +154,7 @@ jobs:
         run: |
           source linux/vars.sh
           chmod +x appimagetool-x86_64.AppImage
-          meson setup build --bindir=usr/bin --prefix=$GITHUB_WORKSPACE/build/local -Dappimage=true -Dappimagekit_path=$PWD/appimagetool-x86_64.AppImage
+          meson setup build --bindir=usr/bin --prefix=$GITHUB_WORKSPACE/build/local -Dappimage=true -Dappimagekit_path=$PWD/appimagetool-x86_64.AppImage -Dbuildtype=debug
           cd build
           ninja
           ninja install
