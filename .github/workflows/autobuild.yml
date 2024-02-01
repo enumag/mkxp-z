@@ -58,7 +58,7 @@ jobs:
         shell: msys2 {0}
         run: |
           source windows/vars.sh
-          meson setup build -Dbuildtype=debug
+          meson setup build -Dbuildtype=debugoptimized
           cd build
           ninja
 
@@ -154,7 +154,7 @@ jobs:
         run: |
           source linux/vars.sh
           chmod +x appimagetool-x86_64.AppImage
-          meson setup build --bindir=usr/bin --prefix=$GITHUB_WORKSPACE/build/local -Dappimage=true -Dappimagekit_path=$PWD/appimagetool-x86_64.AppImage -Dbuildtype=debug
+          meson setup build --bindir=usr/bin --prefix=$GITHUB_WORKSPACE/build/local -Dappimage=true -Dappimagekit_path=$PWD/appimagetool-x86_64.AppImage -Dbuildtype=debugoptimized
           cd build
           ninja
           ninja install
