@@ -176,7 +176,7 @@ namespace Source
 		alSourcef(id.al, AL_PITCH, value);
 	}
 
-	inline void setPosition(Source::ID id, double x, double y, double z)
+	inline void setPosition(Source::ID id, float x, float y, float z)
 	{
 		alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
 		float sourcePosition[3] = {x, y, z};
