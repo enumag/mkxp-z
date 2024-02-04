@@ -178,9 +178,12 @@ namespace Source
 
 	inline void setPosition(Source::ID id, double x, double y, double z)
 	{
-		alDistanceModel(AL_NONE);
+		alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
+		float sourcePosition[3] = {x, y, z};
+		alSourcefv(id.al, AL_POSITION, sourcePosition);
 		alSourcei(id.al, AL_SOURCE_RELATIVE, AL_TRUE);
-		alSourcefv(id.al, AL_POSITION, {x, y, z});
+		alSourcef(id.al, AL_MAX_DISTANCE, 1.f);
+		alSourcef(id.al, AL_REFERENCE_DISTANCE, 0.5f);
 	}
 
 	inline void play(Source::ID id)
