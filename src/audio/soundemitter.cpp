@@ -121,7 +121,8 @@ SoundEmitter::~SoundEmitter()
 
 void SoundEmitter::play(const std::string &filename,
                         int volume,
-                        int pitch)
+                        int pitch,
+                        double x, double y, double z)
 {
 	float _volume = clamp<int>(volume, 0, 100) / 100.0f;
 	float _pitch  = clamp<int>(pitch, 50, 150) / 100.0f;
@@ -174,6 +175,7 @@ void SoundEmitter::play(const std::string &filename,
 
 	AL::Source::setVolume(src, _volume * GLOBAL_VOLUME);
 	AL::Source::setPitch(src, _pitch);
+	AL::Source::setPosition(src, x, y, z);
 
 	AL::Source::play(src);
 }
