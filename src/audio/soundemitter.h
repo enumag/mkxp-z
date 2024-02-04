@@ -54,7 +54,8 @@ struct SoundEmitter
 
 	void play(const std::string &filename,
 	          int volume,
-	          int pitch);
+	          int pitch,
+	          double x, double y, double z);
 
 	void stop();
 
