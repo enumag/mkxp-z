@@ -39,7 +39,6 @@
 #include "vertex.h"
 #include "tileatlas.h"
 #include "tilemap-common.h"
-#include "graphics.h"
 
 #include "sigslot/signal.hpp"
 
@@ -887,8 +886,7 @@ struct TilemapPrivate
 			tilemapShader.setTone(tone->norm);
 			tilemapShader.setColor(color->norm);
 			tilemapShader.setOpacity(opacity.norm);
-			//tilemapShader.setAniIndex(tiles.aniIdx / atFrameDur);
-			tilemapShader.setAniIndex(shState->graphics().getFrameCount() % atFrames);
+			tilemapShader.setAniIndex(tiles.aniIdx / atFrameDur);
 			tilemapShader.setATFrames(atlas.nATFrames);
 			shaderVar = &tilemapShader;
 		}
