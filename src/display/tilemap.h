@@ -43,8 +43,6 @@ public:
 	public:
 		void set(int i, Bitmap *bitmap);
 		Bitmap *get(int i) const;
-		void setFrame(int i);
-		int getFrame();
 
 	private:
 		Autotiles() {}
@@ -75,8 +73,6 @@ public:
 	DECL_ATTR( BlendType, int     )
 	DECL_ATTR( Color,     Color&  )
 	DECL_ATTR( Tone,      Tone&   )
-
-	DECL_ATTR( AutotileIndex, int )
 
 	void initDynAttribs();
 
