@@ -1259,7 +1259,7 @@ void Tilemap::update()
 	if (!p->tiles.animated)
 		return;
 
-	++p->tiles.aniIdx;
+	//++p->tiles.aniIdx;
 }
 
 Tilemap::Autotiles &Tilemap::getAutotiles()
