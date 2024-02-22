@@ -38,6 +38,7 @@
 #include "quad.h"
 #include "vertex.h"
 #include "tileatlas.h"
+#include "graphics.h"
 #include "tilemap-common.h"
 
 #include "sigslot/signal.hpp"
@@ -1260,6 +1261,7 @@ void Tilemap::update()
 		return;
 
 	//++p->tiles.aniIdx;
+	p->tiles.aniIdx = shState->graphics().getFrameCount();
 }
 
 Tilemap::Autotiles &Tilemap::getAutotiles()
