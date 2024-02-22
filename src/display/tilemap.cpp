@@ -701,7 +701,8 @@ struct TilemapPrivate
 	void handleAutotile(int x, int y, int tileInd, SVVector *array)
 	{
 		/* Which autotile [0-7] */
-		int atInd = (shState->graphics().getFrameCount() / 15) / 48 - 1;
+		//int atInd = (shState->graphics().getFrameCount() / 15) / 48 - 1;
+		int atInd = (shState->graphics().getFrameCount() / 15) % 8;
 		if (!atlas.smallATs[atInd])
 		{
 			/* Which tile pattern of the autotile [0-47] */
