@@ -1261,7 +1261,7 @@ void Tilemap::update()
 	if (!p->tiles.animated)
 		return;
 
-	p->tiles.aniIdx = shState->graphics().getFrameCount() % atFrameDur;
+	p->tiles.aniIdx = shState->graphics().getFrameCount();
 }
 
 Tilemap::Autotiles &Tilemap::getAutotiles()
@@ -1284,6 +1284,7 @@ DEF_ATTR_RD_SIMPLE(Tilemap, BlendType, int, p->blendType)
 DEF_ATTR_SIMPLE(Tilemap, Opacity,   int,     p->opacity)
 DEF_ATTR_SIMPLE(Tilemap, Color,     Color&, *p->color)
 DEF_ATTR_SIMPLE(Tilemap, Tone,      Tone&,  *p->tone)
+DEF_ATTR_SIMPLE(Tilemap, AutotileIndex, int, p->tiles.aniIdx)
 
 void Tilemap::setTileset(Bitmap *value)
 {

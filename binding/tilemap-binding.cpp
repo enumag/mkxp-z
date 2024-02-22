@@ -65,6 +65,14 @@ RB_METHOD(tilemapAutotilesGet) {
     return rb_ary_entry(ary, i);
 }
 
+//RB_METHOD(tilemapAutotilesGetFrame) {
+    
+//}
+
+//RB_METHOD(tilemapAutotilesSetFrame) {
+    
+//}
+
 #if RAPI_FULL > 187
 DEF_TYPE(Tilemap);
 #else
@@ -154,6 +162,7 @@ DEF_GFX_PROP_B(Tilemap, Visible)
 
 DEF_GFX_PROP_I(Tilemap, OX)
 DEF_GFX_PROP_I(Tilemap, OY)
+DEF_GFX_PROP_I(Tilemap, AutotileIndex)
 
 DEF_GFX_PROP_I(Tilemap, Opacity)
 DEF_GFX_PROP_I(Tilemap, BlendType)
@@ -166,6 +175,8 @@ void tilemapBindingInit() {
     
     _rb_define_method(klass, "[]=", tilemapAutotilesSet);
     _rb_define_method(klass, "[]", tilemapAutotilesGet);
+    _rb_define_method(klass, "getFrame", tilemapAutotilesGetFrame);
+    //_rb_define_method(klass, "setFrame=", tilemapAutotilesSetFrame);
     
     klass = rb_define_class("Tilemap", rb_cObject);
 #if RAPI_FULL > 187
@@ -194,4 +205,5 @@ void tilemapBindingInit() {
     INIT_PROP_BIND(Tilemap, BlendType, "blend_type");
     INIT_PROP_BIND(Tilemap, Color, "color");
     INIT_PROP_BIND(Tilemap, Tone, "tone");
+    INIT_PROP_BIND(Tilemap, AutotileIndex, "autotile_animation_index");
 }
