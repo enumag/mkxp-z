@@ -370,7 +370,7 @@ struct TilemapPrivate
 
 		tiles.animated = false;
 		//tiles.aniIdx = 0;
-		tiles.aniIdx = shState->graphics().getFrameCount() % atFrameDur;
+		tiles.aniIdx = shState->graphics().getFrameCount();// % atFrameDur;
 
 		/* Init tile buffers */
 		tiles.vbo = VBO::gen();
