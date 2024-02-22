@@ -175,7 +175,7 @@ void tilemapBindingInit() {
     
     _rb_define_method(klass, "[]=", tilemapAutotilesSet);
     _rb_define_method(klass, "[]", tilemapAutotilesGet);
-    _rb_define_method(klass, "getFrame", tilemapAutotilesGetFrame);
+    //_rb_define_method(klass, "getFrame", tilemapAutotilesGetFrame);
     //_rb_define_method(klass, "setFrame=", tilemapAutotilesSetFrame);
     
     klass = rb_define_class("Tilemap", rb_cObject);
