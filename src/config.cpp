@@ -53,6 +53,16 @@ void fillStringVec(json::value &item, std::vector<std::string> &vector) {
     }
 }
 
+void fillNumberVec(json::value &item, std::vector<double> &vector) {
+    auto &array = item.as_array();
+    for (size_t i = 0; i < array.size(); i++) {
+        if (!array[i].is_number())
+            continue;
+
+        vector.push_back(array[i].as_number());
+    }
+}
+
 bool copyObject(json::value &dest, json::value &src, const char *objectName = "") {
     assert(dest.is_object());
     if (src.is_null())
@@ -212,7 +222,8 @@ void Config::read(int argc, char *argv[]) {
             {"z", "Z"},
             {"l", "L"},
             {"r", "R"}
-        })}
+        })},
+        {"axisDeadzone", json::array({0, 0, 0, 0, 0, 0})}
     });
     
     auto &opts = optsJ.as_object();
@@ -333,7 +344,8 @@ try { exp } catch (...) {}
         std::transform(fontSub.begin(), fontSub.end(), fontSub.begin(),
             [](unsigned char c) { return std::tolower(c); });
     fillStringVec(opts["rubyLoadpath"], rubyLoadpaths);
-    
+    fillNumberVec(opts["axisDeadzone"], axisDeadzone);
+
     auto &bnames = opts["bindingNames"].as_object();
     
 #define BINDING_NAME(btn) kbActionNames.btn = bnames[#btn].as_string()
