@@ -39,6 +39,7 @@
 #include "vertex.h"
 #include "tileatlas.h"
 #include "tilemap-common.h"
+#include "graphics.h"
 
 #include "sigslot/signal.hpp"
 
@@ -368,7 +369,7 @@ struct TilemapPrivate
 		atlas.efTilesetH = 0;
 
 		tiles.animated = false;
-		tiles.aniIdx = 0;
+		tiles.aniIdx = shState->graphics().getFrameCount();
 
 		/* Init tile buffers */
 		tiles.vbo = VBO::gen();
