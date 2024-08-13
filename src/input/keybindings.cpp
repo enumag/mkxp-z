@@ -85,7 +85,13 @@ static const KbBindingData defaultKbBindings[] =
 	{ SDL_SCANCODE_W,        Input::R   },
 	{ SDL_SCANCODE_PAGEDOWN, Input::R   },
 	{ SDL_SCANCODE_A,        Input::X   },
-	{ SDL_SCANCODE_S,        Input::Y   }
+	{ SDL_SCANCODE_S,        Input::Y   },
+	{ SDL_SCANCODE_LSHIFT,   Input::D   },
+	{ SDL_SCANCODE_RSHIFT,   Input::D   },
+	{ SDL_SCANCODE_TAB,      Input::E   },
+	{ SDL_SCANCODE_LALT,     Input::E   },
+	{ SDL_SCANCODE_M,        Input::E   },
+	{ SDL_SCANCODE_F7,       Input::F   },
 };
 
 /* RGSS1 */
@@ -111,12 +117,12 @@ static const CtrlBindingData defaultCtrlBindings[] =
 	{ SDL_CONTROLLER_BUTTON_B, Input::B  },
 	{ SDL_CONTROLLER_BUTTON_X, Input::Y  },
 	{ SDL_CONTROLLER_BUTTON_Y, Input::X  },
-	{ SDL_CONTROLLER_BUTTON_START, Input::A  },
-	// Left stick is mapped to Mute / Unmute in scripts
-	// { SDL_CONTROLLER_BUTTON_LEFTSTICK, Input::Y  },
+	{ SDL_CONTROLLER_BUTTON_BACK, Input::E },
+	{ SDL_CONTROLLER_BUTTON_START, Input::A },
+	{ SDL_CONTROLLER_BUTTON_LEFTSTICK, Input::F },
 	{ SDL_CONTROLLER_BUTTON_RIGHTSTICK, Input::Z },
-	{ SDL_CONTROLLER_BUTTON_LEFTSHOULDER, Input::L  },
-	{ SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, Input::R  },
+	{ SDL_CONTROLLER_BUTTON_LEFTSHOULDER, Input::L },
+	{ SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, Input::R },
     
     { SDL_CONTROLLER_BUTTON_DPAD_UP, Input::Up },
     { SDL_CONTROLLER_BUTTON_DPAD_DOWN, Input::Down },
@@ -165,7 +171,7 @@ BDescVec genDefaultBindings(const Config &conf)
 	return d;
 }
 
-#define FORMAT_VER 3
+#define FORMAT_VER 4
 
 struct Header
 {
@@ -230,6 +236,7 @@ static bool verifyDesc(const BindingDesc &desc)
 	    Input::Down, Input::Left, Input::Right, Input::Up,
 	    Input::A, Input::B, Input::C,
 	    Input::X, Input::Y, Input::Z,
+	    Input::D, Input::E, Input::F,
 	    Input::L, Input::R,
 	    Input::Shift, Input::Ctrl, Input::Alt,
 	    Input::F5, Input::F6, Input::F7, Input::F8, Input::F9

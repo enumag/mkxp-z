@@ -155,6 +155,10 @@ struct Config {
         std::string a;
         std::string b;
         std::string c;
+
+        std::string d;
+        std::string e;
+        std::string f;
         
         std::string x;
         std::string y;

@@ -203,6 +203,9 @@ void Config::read(int argc, char *argv[]) {
             {"a", "A"},
             {"b", "B"},
             {"c", "C"},
+            {"d", "D"},
+            {"e", "E"},
+            {"f", "F"},
             {"x", "X"},
             {"y", "Y"},
             {"z", "Z"},
@@ -335,6 +338,9 @@ try { exp } catch (...) {}
     BINDING_NAME(a);
     BINDING_NAME(b);
     BINDING_NAME(c);
+    BINDING_NAME(d);
+    BINDING_NAME(e);
+    BINDING_NAME(f);
     BINDING_NAME(x);
     BINDING_NAME(y);
     BINDING_NAME(z);
