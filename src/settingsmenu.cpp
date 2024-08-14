@@ -38,7 +38,7 @@
 #include <algorithm>
 #include <assert.h>
 
-const Vec2i winSize(840, 356);
+const Vec2i winSize(840, 420);
 
 const uint8_t cBgNorm = 50;
 const uint8_t cBgDark = 20;
@@ -71,10 +71,13 @@ struct VButton
 	BTN_STRING(R),
 	BTN_STRING(A),
 	BTN_STRING(B),
-  BTN_STRING(C),
+	BTN_STRING(C),
 	BTN_STRING(X),
 	BTN_STRING(Y),
-  BTN_STRING(Z)
+	BTN_STRING(Z),
+	BTN_STRING(D),
+	BTN_STRING(E),
+	BTN_STRING(F),
 };
 
 static elementsN(vButtons);
@@ -922,6 +925,9 @@ SettingsMenu::SettingsMenu(RGSSThreadData &rtData)
         SET_BUTTON_NAME(9, x);
         SET_BUTTON_NAME(10, y);
         SET_BUTTON_NAME(11, z);
+        SET_BUTTON_NAME(12, d);
+        SET_BUTTON_NAME(13, e);
+        SET_BUTTON_NAME(14, f);
 #undef SET_BUTTON_NAME
     }
     
@@ -941,18 +947,18 @@ SettingsMenu::SettingsMenu(RGSSThreadData &rtData)
 
 	p->rgb = p->winSurf->format;
 
-	const size_t layoutW = 4;
-	const size_t layoutH = 3;
+	const size_t layoutW = 3;
+	const size_t layoutH = 5;
 	assert(layoutW*layoutH == vButtonsN);
 
-	const int bWidgetW = winSize.x / layoutH;
+	const int bWidgetW = winSize.x / layoutW;
 	const int bWidgetH = 64;
-	const int bWidgetY = winSize.y - layoutW*bWidgetH - 48;
+	const int bWidgetY = winSize.y - layoutH*bWidgetH - 48;
 
-	for (int y = 0; y < 4; ++y)
-		for (int x = 0; x < 3; ++x)
+	for (int y = 0; y < layoutH; ++y)
+		for (int x = 0; x < layoutW; ++x)
 		{
-			int i = y*3+x;
+			int i = y*layoutW+x;
 			BindingWidget w(i, p, IntRect(x*bWidgetW, bWidgetY+y*bWidgetH,
 			                              bWidgetW, bWidgetH));
 			p->bWidgets.push_back(w);

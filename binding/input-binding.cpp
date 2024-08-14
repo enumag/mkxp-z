@@ -534,7 +534,8 @@ RB_METHOD(inputSetClipboard) {
 struct {
     const char *str;
     Input::ButtonCode val;
-} static buttonCodes[] = {{"DOWN", Input::Down},
+} static buttonCodes[] = {
+    {"DOWN", Input::Down},
     {"LEFT", Input::Left},
     {"RIGHT", Input::Right},
     {"UP", Input::Up},
@@ -546,6 +547,9 @@ struct {
     {"Y", Input::Y},
     {"L", Input::L},
     {"R", Input::R},
+    {"D", Input::D},
+    {"E", Input::E},
+    {"F", Input::F},
     {"SHIFT", Input::Shift},
     {"CTRL", Input::Ctrl},
     {"ALT", Input::Alt},

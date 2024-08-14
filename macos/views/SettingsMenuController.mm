@@ -34,8 +34,8 @@
 
 static const int inputMapRowToCode[] {
     Input::Down, Input::Left, Input::Right, Input::Up,
-    Input::A, Input:: B, Input::C, Input::X, Input::Y, Input::Z,
-    Input::L, Input::R
+    Input::A, Input::B, Input::C, Input::X, Input::Y, Input::Z,
+    Input::L, Input::R, Input::D, Input::E, Input::F,
 };
 
 typedef NSMutableArray<NSNumber*> BindingIndexArray;
@@ -280,6 +280,9 @@ s.d.ca.dir = (axis.value >= 0) ? AxisDir::Positive : AxisDir::Negative;
     SET_BINDING(Z);
     SET_BINDING(L);
     SET_BINDING(R);
+    SET_BINDING(D);
+    SET_BINDING(E);
+    SET_BINDING(F);
     
 #define SET_BINDING_CONF(code, value) \
 if (!data.config.kbActionNames.value.empty()) bindingNames[@(Input::code)] = \
@@ -292,6 +295,9 @@ if (!data.config.kbActionNames.value.empty()) bindingNames[@(Input::code)] = \
     SET_BINDING_CONF(Z,z);
     SET_BINDING_CONF(L,l);
     SET_BINDING_CONF(R,r);
+    SET_BINDING_CONF(D,d);
+    SET_BINDING_CONF(E,e);
+    SET_BINDING_CONF(F,f);
     
     BDescVec oldBinds;
     data.bindingUpdateMsg.get(oldBinds);
