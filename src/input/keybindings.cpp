@@ -183,7 +183,7 @@ struct Header
 static void buildPath(const std::string &dir, uint32_t rgssVersion,
                       char *out, size_t outSize)
 {
-	snprintf(out, outSize, "%skeybindings.mkxp%u", dir.c_str(), rgssVersion);
+	snprintf(out, outSize, "%skeybindings_v%u.mkxp%u", dir.c_str(), FORMAT_VER, rgssVersion);
 }
 
 static bool writeBindings(const BDescVec &d, const std::string &dir,
