@@ -162,16 +162,17 @@ DEF_FADE( me )
 
 DEF_PLAY_STOP( se )
 
-RB_METHOD(se_playPosition) {
+RB_METHOD_GUARD(se_playPosition) {
 	RB_UNUSED_PARAM;
 	const char *filename;
 	int volume = 100;
 	int pitch = 100;
 	double x = 0.0f, y = 0.0f, z = 0.0f;
 	rb_get_args(argc, argv, "z|iifff", &filename, &volume, &pitch, &x, &y, &z RB_ARG_END);
-	GUARD_EXC( shState->audio().sePlayPosition(filename, volume, pitch, x, y, z); )
+	shState->audio().sePlayPosition(filename, volume, pitch, x, y, z);
 	return Qnil;
 }
+RB_METHOD_GUARD_END
 
 RB_METHOD(audioSetupMidi)
 {
