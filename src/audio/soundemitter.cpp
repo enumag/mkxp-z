@@ -250,7 +250,7 @@ struct SoundOpenHandler : FileSystem::OpenHandler
 
 SoundBuffer *SoundEmitter::allocateBuffer(const std::string &filename, const bool makeMono)
 {
-	std::string  key 	= filename + (makeMono ? "1" : "2");
+	std::string key = filename + "_" + (makeMono ? "1" : "2");
 	SoundBuffer *buffer = bufferHash.value(key, 0);
 
 	if (buffer)
