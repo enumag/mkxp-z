@@ -223,7 +223,7 @@ struct SoundOpenHandler : FileSystem::OpenHandler
 			float *monoSamples   = new float[sampleCount/2];
 			float *stereoSamples = (float*)sample->buffer;
 
-			for (uint32_t i = 0; i < sampleCount; i+=2)
+			for (uint32_t i = 0; i < sampleCount; i += 2)
 			{
 				monoSamples[i/2] = stereoSamples[i] / 2.0 + stereoSamples[i] / 2.0;
 			}
