@@ -225,7 +225,7 @@ struct SoundOpenHandler : FileSystem::OpenHandler
 
 			for (uint32_t i = 0; i < sampleCount; i += 2)
 			{
-				monoSamples[i/2] = stereoSamples[i] / 2.0 + stereoSamples[i] / 2.0;
+				monoSamples[i / 2] = stereoSamples[i] / 2.0 + stereoSamples[i] / 2.0;
 			}
 
 			alFormat = chooseALFormat(sampleSize, 1);
