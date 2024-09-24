@@ -127,7 +127,9 @@ void SoundEmitter::play(const std::string &filename,
 	float _volume = clamp<int>(volume, 0, 100) / 100.0f;
 	float _pitch  = clamp<int>(pitch, 50, 150) / 100.0f;
 
-	SoundBuffer *buffer = allocateBuffer(filename);
+	bool makeMono = (x != 0.0 || y != 0.0 || z != 0.0);
+
+	SoundBuffer *buffer = allocateBuffer(filename, makeMono);
 
 	if (!buffer)
 		return;
@@ -189,9 +191,10 @@ void SoundEmitter::stop()
 struct SoundOpenHandler : FileSystem::OpenHandler
 {
 	SoundBuffer *buffer;
+	bool makeMono;
 
-	SoundOpenHandler()
-	    : buffer(0)
+	SoundOpenHandler(bool makeMono)
+		: buffer(0), makeMono(makeMono)
 	{}
 
 	bool tryRead(SDL_RWops &ops, const char *ext)
@@ -215,8 +218,29 @@ struct SoundOpenHandler : FileSystem::OpenHandler
 
 		ALenum alFormat = chooseALFormat(sampleSize, sample->actual.channels);
 
-		AL::Buffer::uploadData(buffer->alBuffer, alFormat, sample->buffer,
+		if (makeMono && sample->actual.channels == 2)
+		{
+			float *monoSamples   = new float[sampleCount / 2];
+			float *stereoSamples = (float*)sample->buffer;
+
+			for (uint32_t i = 0; i < sampleCount; i += 2)
+			{
+				monoSamples[i / 2] = stereoSamples[i] / 2.0 + stereoSamples[i] / 2.0;
+			}
+
+			alFormat = chooseALFormat(sampleSize, 1);
+			buffer->bytes = buffer->bytes / 2;
+
+			AL::Buffer::uploadData(buffer->alBuffer, alFormat, (const ALvoid*)monoSamples,
 							   buffer->bytes, sample->actual.rate);
+
+			delete[] monoSamples;
+		}
+		else
+		{
+			AL::Buffer::uploadData(buffer->alBuffer, alFormat, sample->buffer,
+							   buffer->bytes, sample->actual.rate);
+		}
 
 		Sound_FreeSample(sample);
 
@@ -224,9 +248,10 @@ struct SoundOpenHandler : FileSystem::OpenHandler
 	}
 };
 
-SoundBuffer *SoundEmitter::allocateBuffer(const std::string &filename)
+SoundBuffer *SoundEmitter::allocateBuffer(const std::string &filename, const bool makeMono)
 {
-	SoundBuffer *buffer = bufferHash.value(filename, 0);
+	std::string key = filename + "_" + (makeMono ? "1" : "2");
+	SoundBuffer *buffer = bufferHash.value(key, 0);
 
 	if (buffer)
 	{
@@ -240,7 +265,7 @@ SoundBuffer *SoundEmitter::allocateBuffer(const std::string &filename)
 	else
 	{
 		/* Buffer not in cache, needs to be loaded */
-		SoundOpenHandler handler;
+		SoundOpenHandler handler(makeMono);
 		shState->fileSystem().openRead(handler, filename.c_str());
 		buffer = handler.buffer;
 
@@ -254,7 +279,7 @@ SoundBuffer *SoundEmitter::allocateBuffer(const std::string &filename)
 			return 0;
 		}
 
-		buffer->key = filename;
+		buffer->key = key;
 		uint32_t wouldBeBytes = bufferBytes + buffer->bytes;
 
 		/* If memory limit is reached, delete lowest priority buffer
@@ -270,7 +295,7 @@ SoundBuffer *SoundEmitter::allocateBuffer(const std::string &filename)
 			SoundBuffer::deref(last);
 		}
 
-		bufferHash.insert(filename, buffer);
+		bufferHash.insert(key, buffer);
 		buffers.prepend(buffer->link);
 
 		bufferBytes = wouldBeBytes;

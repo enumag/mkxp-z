@@ -167,7 +167,7 @@ RB_METHOD_GUARD(se_playPosition) {
 	const char *filename;
 	int volume = 100;
 	int pitch = 100;
-	double x = 0.0f, y = 0.0f, z = 0.0f;
+	double x = 0.0, y = 0.0, z = 0.0;
 	rb_get_args(argc, argv, "z|iifff", &filename, &volume, &pitch, &x, &y, &z RB_ARG_END);
 	shState->audio().sePlayPosition(filename, volume, pitch, x, y, z);
 	return Qnil;
