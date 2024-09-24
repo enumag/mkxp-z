@@ -60,7 +60,8 @@ struct SoundEmitter
 	void stop();
 
 private:
-	SoundBuffer *allocateBuffer(const std::string &filename);
+	SoundBuffer *allocateBuffer(const std::string &filename,
+								const bool makeMono = false);
 };
 
 #endif // SOUNDEMITTER_H

@@ -394,7 +394,7 @@ void Audio::sePlay(const char *filename,
                    int volume,
                    int pitch)
 {
-	p->se.play(filename, volume, pitch, 0.0f, 0.0f, 0.0f);
+	p->se.play(filename, volume, pitch, 0.0, 0.0, 0.0);
 }
 
 
