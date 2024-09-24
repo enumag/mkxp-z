@@ -220,7 +220,7 @@ struct SoundOpenHandler : FileSystem::OpenHandler
 
 		if (makeMono && sample->actual.channels == 2)
 		{
-			float *monoSamples   = new float[sampleCount/2];
+			float *monoSamples   = new float[sampleCount / 2];
 			float *stereoSamples = (float*)sample->buffer;
 
 			for (uint32_t i = 0; i < sampleCount; i += 2)
