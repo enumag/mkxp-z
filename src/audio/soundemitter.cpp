@@ -194,8 +194,7 @@ struct SoundOpenHandler : FileSystem::OpenHandler
 	bool makeMono;
 
 	SoundOpenHandler(bool makeMono)
-	    : buffer(0),
-		  makeMono(makeMono)
+		: buffer(0), makeMono(makeMono)
 	{}
 
 	bool tryRead(SDL_RWops &ops, const char *ext)
@@ -229,7 +228,7 @@ struct SoundOpenHandler : FileSystem::OpenHandler
 				monoSamples[i/2] = stereoSamples[i] / 2.0 + stereoSamples[i] / 2.0;
 			}
 
-			alFormat 	  = chooseALFormat(sampleSize, 1);
+			alFormat = chooseALFormat(sampleSize, 1);
 			buffer->bytes = buffer->bytes / 2;
 
 			AL::Buffer::uploadData(buffer->alBuffer, alFormat, (const ALvoid*)monoSamples,
@@ -240,7 +239,7 @@ struct SoundOpenHandler : FileSystem::OpenHandler
 		else
 		{
 			AL::Buffer::uploadData(buffer->alBuffer, alFormat, sample->buffer,
-							   	   buffer->bytes, sample->actual.rate);
+							   buffer->bytes, sample->actual.rate);
 		}
 
 		Sound_FreeSample(sample);
@@ -249,8 +248,7 @@ struct SoundOpenHandler : FileSystem::OpenHandler
 	}
 };
 
-SoundBuffer *SoundEmitter::allocateBuffer(const std::string &filename,
-										  const bool makeMono)
+SoundBuffer *SoundEmitter::allocateBuffer(const std::string &filename, const bool makeMono)
 {
 	SoundBuffer *buffer = bufferHash.value(filename, 0);
 
