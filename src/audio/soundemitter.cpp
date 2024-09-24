@@ -250,7 +250,8 @@ struct SoundOpenHandler : FileSystem::OpenHandler
 
 SoundBuffer *SoundEmitter::allocateBuffer(const std::string &filename, const bool makeMono)
 {
-	SoundBuffer *buffer = bufferHash.value(filename, 0);
+	std::string  key 	= filename + (makeMono ? "1" : "2");
+	SoundBuffer *buffer = bufferHash.value(key, 0);
 
 	if (buffer)
 	{
@@ -278,7 +279,7 @@ SoundBuffer *SoundEmitter::allocateBuffer(const std::string &filename, const boo
 			return 0;
 		}
 
-		buffer->key = filename;
+		buffer->key = key;
 		uint32_t wouldBeBytes = bufferBytes + buffer->bytes;
 
 		/* If memory limit is reached, delete lowest priority buffer
@@ -294,7 +295,7 @@ SoundBuffer *SoundEmitter::allocateBuffer(const std::string &filename, const boo
 			SoundBuffer::deref(last);
 		}
 
-		bufferHash.insert(filename, buffer);
+		bufferHash.insert(key, buffer);
 		buffers.prepend(buffer->link);
 
 		bufferBytes = wouldBeBytes;
