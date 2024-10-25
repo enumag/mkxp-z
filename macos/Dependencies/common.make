@@ -93,6 +93,7 @@ $(DOWNLOADS)/vorbis/configure: $(DOWNLOADS)/vorbis/autogen.sh
 
 $(DOWNLOADS)/vorbis/autogen.sh:
 	$(CLONE) $(GITHUB)/mkxp-z/vorbis $(DOWNLOADS)/vorbis
+	sed -i '' 's/ -force_cpusubtype_ALL / /g' $(DOWNLOADS)/vorbis/configure.ac
 
 
 # Ogg, dependency of Vorbis
