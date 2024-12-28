@@ -336,5 +336,5 @@ clean-downloads:
 clean-compiled:
 	-rm -rf build-macosx-$(ARCH)
 
-deps-core: libtheora libvorbis pixman libpng physfs uchardet sdl2 sdl2image sdlsound sdl2ttf openal openssl
+deps-core: libtheora libvorbis pixman libpng physfs uchardet freetype sdl2 sdl2image sdlsound sdl2ttf openal openssl
 everything: deps-core ruby
