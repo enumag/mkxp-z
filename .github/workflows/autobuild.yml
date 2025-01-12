@@ -197,6 +197,79 @@ jobs:
             build/local/**
             build/mkxp-z-x86_64.AppImage
 
+  build-linux-arm64:
+    name: Ubuntu 22.04 arm64
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Game
+        id: game
+        run: echo game=$(echo ${{ github.ref_name }}| cut -d- -f1) >> $GITHUB_OUTPUT
+
+      - name: Icon
+        if: "steps.game.outputs.game != 'default'"
+        run: |
+          cp icons/${{ steps.game.outputs.game }}.png linux/mkxp-z.png
+          cp icons/${{ steps.game.outputs.game }}.png assets/icon.png
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            linux/build-arm64
+            linux/downloads
+          key: lin-arm64-${{ hashFiles('linux/Makefile', 'linux/target*', 'linux/toolchain*') }}
+
+      - name: Install apt dependencies
+        run: |
+          sudo sed -i "s/deb /deb [arch=amd64] /g" /etc/apt/sources.list
+          sudo dpkg --add-architecture arm64
+          echo "deb [arch=arm64] http://ports.ubuntu.com/ jammy main restricted" | sudo tee -a /etc/apt/sources.list
+          echo "deb [arch=arm64] http://ports.ubuntu.com/ jammy-updates main restricted" | sudo tee -a /etc/apt/sources.list
+          echo "deb [arch=arm64] http://ports.ubuntu.com/ jammy universe" | sudo tee -a /etc/apt/sources.list
+          echo "deb [arch=arm64] http://ports.ubuntu.com/ jammy-updates universe" | sudo tee -a /etc/apt/sources.list
+          echo "deb [arch=arm64] http://ports.ubuntu.com/ jammy multiverse" | sudo tee -a /etc/apt/sources.list
+          echo "deb [arch=arm64] http://ports.ubuntu.com/ jammy-updates multiverse" | sudo tee -a /etc/apt/sources.list
+          echo "deb [arch=arm64] http://ports.ubuntu.com/ jammy-backports main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+          sudo apt update
+          sudo apt install git build-essential cmake meson autoconf automake libtool pkg-config ruby bison -y
+          sudo apt install libdmx-dev:arm64 libfontenc-dev:arm64 libfs-dev:arm64 libice-dev:arm64 libsm-dev:arm64 libx11-dev:arm64 libxau-dev:arm64 libxaw7-dev:arm64 libxcomposite-dev:arm64 libxcursor-dev:arm64 libxdamage-dev:arm64 libxdmcp-dev:arm64 libxext-dev:arm64 libxfixes-dev:arm64 libxfont-dev:arm64 libxft-dev:arm64 libxi-dev:arm64 libxinerama-dev:arm64 libxkbfile-dev:arm64 libxmu-dev:arm64 libxmuu-dev:arm64 libxpm-dev:arm64 libxrandr-dev:arm64 libxrender-dev:arm64 libxres-dev:arm64 libxss-dev:arm64 libxt-dev:arm64 libxtst-dev:arm64 libxv-dev:arm64 libxvmc-dev:arm64 libxxf86dga-dev:arm64 libxxf86vm-dev:arm64 x11proto-dev:arm64 xserver-xorg-dev:arm64 xtrans-dev:arm64 -y
+          sudo apt install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu zlib1g-dev:arm64 libbz2-dev:arm64 libgl1-mesa-dev:arm64 libasound2-dev:arm64 libpulse-dev:arm64 -y
+
+      - name: Build everything else
+        run: |
+          cd linux
+          source target-arm64.sh
+          make
+
+      - name: Build executable
+        run: |
+          source linux/target-arm64.sh
+          source linux/vars.sh
+          meson setup --cross-file linux/$ARCH_MESON_TOOLCHAIN build --bindir=. --prefix=$GITHUB_WORKSPACE/build/local
+          cd build
+          ninja
+          ninja install
+          cp "$MKXPZ_PREFIX/lib/$("$ARCH_CONFIGURE-objdump" -p local/mkxp-z* | grep -i NEEDED | grep -Eo 'libruby.so.[0-9\.]+')" local/lib*/
+          cp "/usr/lib/$ARCH_CONFIGURE/$("$ARCH_CONFIGURE-objdump" -p local/lib*/libruby.so* | grep -i NEEDED | grep -Eo 'libcrypt.so.[0-9\.]+')" local/lib*/
+
+      - name: Prepare archive
+        run: |
+          cd build/local
+          cp -r ../../linux/build-arm64/lib/ruby/3.1.0 .
+          mv ./3.1.0 ./stdlib
+          cp ../../mkxp.json .
+
+      - name: Disable specifications
+        working-directory: build/local/stdlib
+        run: sed -i "s~Gem::Specification\.load_defaults~#Gem::Specification\.load_defaults~g" rubygems.rb
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.job }}
+          path: build/local/**
+
   build-linux-cross:
     if: "false"
     name: Ubuntu 22.04 ${{matrix.arch_mkxpz}}
@@ -401,6 +474,11 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
+          name: build-linux-arm64
+          path: arm64
+
+      - uses: actions/download-artifact@v4
+        with:
           name: build-macos
           path: macos
 
@@ -417,6 +495,11 @@ jobs:
           mv local/stdlib stdlib
           mv local/gems gems
           zip -r ../mkxp-z.linux.zip Game.AppImage discord_game_sdk.so stdlib gems
+          cd ../arm64
+          rm -rf scripts LICENSE*
+          mv mkxp-z.generic-armv8-a mkxp
+          chmod +x mkxp
+          zip -r ../mkxp-z.arm64.zip *
           cd ..
           mv macos/Z-universal.app.zip mkxp-z.macos.zip
 
@@ -428,4 +511,5 @@ jobs:
           files: |
             mkxp-z.windows.zip
             mkxp-z.linux.zip
+            mkxp-z.arm64.zip
             mkxp-z.macos.zip
