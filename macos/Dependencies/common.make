@@ -322,6 +322,8 @@ $(DOWNLOADS)/ruby/configure: $(DOWNLOADS)/ruby/configure.ac
 
 $(DOWNLOADS)/ruby/configure.ac:
 	$(CLONE) $(GITHUB)/mkxp-z/ruby $(DOWNLOADS)/ruby --single-branch -b mkxp-z-3.1.3 --depth 1;
+	# Backport fix for https://bugs.ruby-lang.org/issues/19920
+	sed -i '' 's/env\[e] = \[libruby_so, ENV\[e]]\.compact\.join(File::PATH_SEPARATOR)//g' $(DOWNLOADS)/ruby/tool/runruby.rb
 
 # ====
 init_dirs:

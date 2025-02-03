@@ -308,7 +308,7 @@ jobs:
 
   build-macos:
     name: macOS
-    runs-on: macos-13
+    runs-on: macos-14
     steps:
       - name: Remove pre-existing homebrew packages
         run: brew remove --force $(brew list)
