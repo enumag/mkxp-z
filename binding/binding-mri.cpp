@@ -953,7 +953,11 @@ static void runRMXPScripts(BacktraceData &btData) {
     }
     
     if (!shState->fileSystem().exists(scriptPack.c_str())) {
-        showMsg("Unable to load scripts from '" + scriptPack + "'");
+#ifdef __APPLE__
+        showMsg("Unable to load scripts from '" + scriptPack + "'. Move the game to Applications.");
+#else
+        showMsg("Unable to load scripts from '" + scriptPack + "'.");
+#endif
         return;
     }
     
