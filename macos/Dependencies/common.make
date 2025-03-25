@@ -80,11 +80,11 @@ $(DOWNLOADS)/theora/autogen.sh:
 # Vorbis
 libvorbis: init_dirs libogg $(LIBDIR)/libvorbis.a
 
-$(LIBDIR)/libvorbis.a: $(LIBDIR)/libogg.a $(DOWNLOADS)/vorbis/Makefile
+$(LIBDIR)/libvorbis.a: $(LIBDIR)/libogg.a $(DOWNLOADS)/vorbis/cmakebuild/Makefile
 	cd $(DOWNLOADS)/vorbis/cmakebuild; \
 	make -j$(NPROC); make install
 
-$(DOWNLOADS)/vorbis/Makefile: $(DOWNLOADS)/vorbis/CMakeLists.txt
+$(DOWNLOADS)/vorbis/cmakebuild/Makefile: $(DOWNLOADS)/vorbis/CMakeLists.txt
 	cd $(DOWNLOADS)/vorbis; \
 	mkdir cmakebuild; cd cmakebuild; \
 	$(CMAKE) -DBUILD_SHARED_LIBS=no
