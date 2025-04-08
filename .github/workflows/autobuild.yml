@@ -42,7 +42,8 @@ jobs:
           cp icons/${{ steps.game.outputs.game }}.ico windows/icon.ico
           cp icons/${{ steps.game.outputs.game }}.png assets/icon.png
 
-      - uses: actions/cache@v4
+      - name: Cache
+        uses: actions/cache@v4
         with:
           path: |
             windows/build-mingw64
@@ -128,7 +129,8 @@ jobs:
           cp icons/${{ steps.game.outputs.game }}.png linux/mkxp-z.png
           cp icons/${{ steps.game.outputs.game }}.png assets/icon.png
 
-      - uses: actions/cache@v4
+      - name: Cache
+        uses: actions/cache@v4
         with:
           path: |
             linux/build-x86_64
@@ -190,7 +192,8 @@ jobs:
         working-directory: build/local/stdlib
         run: sed -i "s~Gem::Specification\.load_defaults~#Gem::Specification\.load_defaults~g" rubygems.rb
 
-      - uses: actions/upload-artifact@v4
+      - name: Cache
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.job }}
           path: |
@@ -248,7 +251,7 @@ jobs:
           length: 7
 
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - uses: actions/cache@v4
         with:
@@ -298,13 +301,11 @@ jobs:
           cp ../../mkxp.json .
           cp -r ../../scripts .
           cp ../../assets/LICENSE.mkxp-z-with-https.txt .
-          cd ..
-          zip -r local.zip local
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: mkxp-z.linux.${{matrix.arch_mkxpz}}.${{github.event_name == 'pull_request' && format('PR{0}', github.event.number) || github.ref_name}}-${{steps.short-sha.outputs.sha}}
-          path: build/local.zip
+          path: build/local
 
   build-macos:
     name: macOS
@@ -326,7 +327,8 @@ jobs:
           cp icons/${{ steps.game.outputs.game }}.icns macos/icon.icns
           cp icons/${{ steps.game.outputs.game }}.png assets/icon.png
 
-      - uses: actions/cache@v4
+      - name: Cache
+        uses: actions/cache@v4
         with:
           path: |
             macos/Dependencies/build-macosx-x86_64
