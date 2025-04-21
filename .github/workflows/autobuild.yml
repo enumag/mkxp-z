@@ -311,6 +311,9 @@ jobs:
     name: macOS
     runs-on: macos-13
     steps:
+      - name: Set environment variable
+        run: echo "CMAKE_POLICY_VERSION_MINIMUM=3.10" >> $GITHUB_ENV
+
       - name: Remove pre-existing homebrew packages
         run: brew remove --force $(brew list)
 
