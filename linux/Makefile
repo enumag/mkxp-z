@@ -24,6 +24,7 @@ CLONE := $(GIT) clone -q
 GITHUB := https://github.com
 
 CONFIGURE_ENV := \
+	CMAKE_POLICY_VERSION_MINIMUM=3.10 \
 	PKG_CONFIG_LIBDIR=$(PKG_CONFIG_LIBDIR) \
 	CC="$(CC)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)"
 
@@ -33,7 +34,6 @@ ifdef ARCH_CMAKE_TOOLCHAIN
 	ARCH_CMAKE_ARGS := -DCMAKE_TOOLCHAIN_FILE="${PWD}/$(ARCH_CMAKE_TOOLCHAIN)"
 endif
 CMAKE_ARGS := \
-	-DCMAKE_POLICY_VERSION_MINIMUM=3.10 \
 	-DCMAKE_INSTALL_PREFIX="$(BUILD_PREFIX)" \
 	-DCMAKE_PREFIX_PATH="$(BUILD_PREFIX)" \
 	-DCMAKE_C_FLAGS="$(CFLAGS)" \
@@ -303,7 +303,6 @@ $(DOWNLOADS)/fluidsynth/cmakebuild/Makefile: $(DOWNLOADS)/fluidsynth/CMakeLists.
 
 $(DOWNLOADS)/fluidsynth/CMakeLists.txt:
 	$(CLONE) $(GITHUB)/mkxp-z/fluidsynth-sans-glib $(DOWNLOADS)/fluidsynth
-	sed -i 's/"$${CMAKE_COMMAND}" -D/"$${CMAKE_COMMAND}" -DCMAKE_POLICY_VERSION_MINIMUM=3.10 -D/g' $(DOWNLOADS)/fluidsynth/src/CMakeLists.txt
 
 # OpenSSL
 openssl: init_dirs $(LIBDIR)/libssl.a
