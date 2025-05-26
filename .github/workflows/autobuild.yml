@@ -162,8 +162,7 @@ jobs:
           - arch_mkxpz: s390x
             arch_debian: s390x
             arch_gcc: s390x-linux-gnu
-            # src/util/serial-util.h errors on big-endian targets.
-            experimental: true
+            experimental: false
           - arch_mkxpz: riscv64
             arch_debian: riscv64
             arch_gcc: riscv64-linux-gnu
