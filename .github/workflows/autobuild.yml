@@ -232,6 +232,58 @@ jobs:
           name: mkxp-z.linux.${{matrix.arch_mkxpz}}.${{github.event_name == 'pull_request' && format('PR{0}', github.event.number) || github.ref_name}}-${{steps.short-sha.outputs.sha}}
           path: build/local
 
+  build-linux-native-container:
+    name: Debian Trixie x86_64
+    runs-on: ubuntu-22.04
+    container: debian:trixie
+    steps:
+      - uses: benjlevesque/short-sha@v2.2
+        id: short-sha
+        with:
+          length: 7
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            linux/build-x86_64
+            linux/downloads
+          key: lin-debian-trixie-x86_64-${{ hashFiles('linux/Makefile') }}
+
+      - name: Install apt dependencies
+        run: |
+          apt update
+          apt install git build-essential cmake meson autoconf automake libtool pkg-config ruby bison zlib1g-dev libbz2-dev xorg-dev libgl1-mesa-dev libasound2-dev libpulse-dev -y
+
+      - name: Build everything else
+        run: |
+          cd linux
+          make
+
+      - name: Build executable
+        run: |
+          source linux/vars.sh
+          meson setup build --bindir=. --prefix=$GITHUB_WORKSPACE/build/local
+          cd build
+          ninja
+          ninja install
+
+      - name: Prepare archive
+        run: |
+          cd build/local
+          cp -r ../../linux/build-x86_64/lib/ruby/3.1.0 .
+          mv ./3.1.0 ./stdlib
+          cp ../../mkxp.json .
+          cp -r ../../scripts .
+          cp ../../assets/LICENSE.mkxp-z-with-https.txt .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mkxp-z.linux.x86_64.${{github.event_name == 'pull_request' && format('PR{0}', github.event.number) || github.ref_name}}-${{steps.short-sha.outputs.sha}}
+          path: build/local
+
   build-macos:
     name: macOS
     runs-on: macos-latest
