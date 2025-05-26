@@ -236,6 +236,9 @@ jobs:
     name: Debian Trixie x86_64
     runs-on: ubuntu-22.04
     container: debian:trixie
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: benjlevesque/short-sha@v2.2
         id: short-sha
