@@ -291,6 +291,9 @@ jobs:
     name: Debian Trixie ${{matrix.arch_mkxpz}}
     runs-on: ubuntu-22.04
     container: debian:trixie
+    defaults:
+      run:
+        shell: bash
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
