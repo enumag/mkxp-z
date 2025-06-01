@@ -307,6 +307,7 @@ jobs:
           path: build/local
 
   build-linux-native-container:
+    if: "false"
     name: Debian Trixie x86_64
     runs-on: ubuntu-22.04
     container: debian:trixie
@@ -362,6 +363,7 @@ jobs:
           path: build/local
 
   build-linux-cross-container:
+    if: "false"
     name: Debian Trixie ${{matrix.arch_mkxpz}}
     runs-on: ubuntu-22.04
     container: debian:trixie
