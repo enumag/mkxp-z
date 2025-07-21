@@ -149,8 +149,8 @@ jobs:
       - name: Download AppImageKit
         uses: MrOctopus/download-asset-action@1.1
         with:
-          repository: AppImage/AppImageKit
-          tag: 13
+          repository: AppImage/appimagetool
+          tag: continuous
           asset: appimagetool-x86_64.AppImage
 
       - name: Build executable
