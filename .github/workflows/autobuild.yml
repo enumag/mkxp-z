@@ -102,6 +102,11 @@ jobs:
         working-directory: build/artifact/stdlib
         run: sed -i "s~Gem::Specification\.load_defaults~#Gem::Specification\.load_defaults~g" rubygems.rb
 
+      # Fix mkxp-z issue where CONFIG["prefix"] ends up containing compilation path from GitHub Actions.
+      - name: Fix RbConfig
+        working-directory: build/artifact/stdlib/x64-mingw32
+        run: sed -i 's~TOPDIR || DESTDIR + \".*\"~TOPDIR || DESTDIR + \"\"~g' rbconfig.rb
+
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ github.job }}
@@ -191,6 +196,11 @@ jobs:
       - name: Disable specifications
         working-directory: build/local/stdlib
         run: sed -i "s~Gem::Specification\.load_defaults~#Gem::Specification\.load_defaults~g" rubygems.rb
+
+      # Fix mkxp-z issue where CONFIG["prefix"] ends up containing compilation path from GitHub Actions.
+      - name: Fix RbConfig
+        working-directory: build/local/stdlib/x86_64-linux
+        run: sed -i 's~TOPDIR || DESTDIR + \".*\"~TOPDIR || DESTDIR + \"\"~g' rbconfig.rb
 
       - name: Cache
         uses: actions/upload-artifact@v4
@@ -529,6 +539,11 @@ jobs:
       - name: Disable specifications
         working-directory: build/Build/Products/Release/Z-universal.app/Contents/Resources/Ruby/3.1.0
         run: sed -i '' "s~Gem::Specification\.load_defaults~#Gem::Specification\.load_defaults~g" rubygems.rb
+
+      # Fix mkxp-z issue where CONFIG["prefix"] ends up containing compilation path from GitHub Actions.
+      - name: Fix RbConfig
+        working-directory: build/Build/Products/Release/Z-universal.app/Contents/Resources/Ruby/3.1.0/x86_64-darwin
+        run: sed -i '' 's~TOPDIR || DESTDIR + \".*\"~TOPDIR || DESTDIR + \"\"~g' rbconfig.rb
 
       - name: Compress app
         working-directory: build/Build/Products/Release
