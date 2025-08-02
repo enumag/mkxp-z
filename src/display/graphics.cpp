@@ -838,8 +838,8 @@ struct GraphicsPrivate {
     
     GraphicsPrivate(RGSSThreadData *rtData)
     : scResLores(DEF_SCREEN_W, DEF_SCREEN_H),
-    scRes(rtData->config.enableHires ? (int)lround(rtData->config.framebufferScalingFactor * DEF_SCREEN_W) : DEF_SCREEN_W,
-        rtData->config.enableHires ? (int)lround(rtData->config.framebufferScalingFactor * DEF_SCREEN_H) : DEF_SCREEN_H),
+    scRes(rtData->config.enableHires ? (int)lround(rtData->config.framebufferScalingFactor * rtData->config.defScreenW) : rtData->config.defScreenW,
+        rtData->config.enableHires ? (int)lround(rtData->config.framebufferScalingFactor * rtData->config.defScreenH) : rtData->config.defScreenH),
     scSize(scRes),
     winSize(rtData->config.defScreenW, rtData->config.defScreenH),
     screen(scRes.x, scRes.y), threadData(rtData),
