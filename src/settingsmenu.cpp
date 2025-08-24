@@ -1103,7 +1103,7 @@ bool SettingsMenu::onEvent(const SDL_Event &event)
 		switch(event.key.keysym.scancode)
 		{
 		case SDL_SCANCODE_F1:
-		case SDL_SCANCODE_F2:
+		case SDL_SCANCODE_F11:
 		case SDL_SCANCODE_F12:
 			return true;
 		default:

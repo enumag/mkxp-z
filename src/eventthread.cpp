@@ -362,7 +362,7 @@ void EventThread::process(RGSSThreadData &rtData)
 #endif
                 }
                 
-                if (event.key.keysym.scancode == SDL_SCANCODE_F2)
+                if (event.key.keysym.scancode == SDL_SCANCODE_F11)
                 {
                     if (!displayingFPS)
                     {
