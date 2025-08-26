@@ -296,10 +296,11 @@ $(LIBDIR)/libfluidsynth.a: $(DOWNLOADS)/fluidsynth/cmakebuild/Makefile
 
 $(DOWNLOADS)/fluidsynth/cmakebuild/Makefile: $(DOWNLOADS)/fluidsynth/CMakeLists.txt
 	cd $(DOWNLOADS)/fluidsynth; mkdir cmakebuild; cd cmakebuild; \
-	$(CMAKE) -DBUILD_SHARED_LIBS=no -Denable-sdl2=no -Denable-readline=no
+	$(CMAKE) -DBUILD_SHARED_LIBS=no -Denable-sdl3=no -Denable-readline=no -Dosal=embedded -Denable-libinstpatch=no
 
 $(DOWNLOADS)/fluidsynth/CMakeLists.txt:
-	$(CLONE) $(GITHUB)/mkxp-z/fluidsynth-sans-glib $(DOWNLOADS)/fluidsynth
+	$(CLONE) $(GITHUB)/FluidSynth/fluidsynth --recurse-submodules $(DOWNLOADS)/fluidsynth; \
+	cd $(DOWNLOADS)/fluidsynth; git checkout c5125b5dfee828ea715618d620651b6d135a39cb
 
 # OpenSSL
 openssl: init_dirs $(LIBDIR)/libssl.a
