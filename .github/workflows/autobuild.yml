@@ -13,7 +13,7 @@ on:
 jobs:
   build-windows:
     name: Windows
-    runs-on: windows-latest
+    runs-on: windows-2025
     steps:
       - uses: msys2/setup-msys2@v2
         with:
