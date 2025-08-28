@@ -578,19 +578,23 @@ jobs:
           name: build-macos
           path: macos
 
+      - name: Name
+        id: name
+        run: echo name=$(echo ${{ github.ref_name }}| cut -d- -f1 | sed 's/^\(.\)/\U\1/') >> $GITHUB_OUTPUT
+
       - name: Zip Folder
         run: |
           cd windows
           rm -f mkxp.json
-          mv mkxp-z.exe Game.exe
-          zip -r ../mkxp-z.windows.zip Game.exe *.dll stdlib gems
+          mv mkxp-z.exe ${{ steps.name.outputs.name }}.exe
+          zip -r ../mkxp-z.windows.zip ${{ steps.name.outputs.name }}.exe *.dll stdlib gems
           cd ../linux
-          mv mkxp-z-x86_64.AppImage Game.AppImage
-          chmod +x Game.AppImage
+          mv mkxp-z-x86_64.AppImage ${{ steps.name.outputs.name }}.AppImage
+          chmod +x ${{ steps.name.outputs.name }}.AppImage
           mv local/discord_game_sdk.so discord_game_sdk.so
           mv local/stdlib stdlib
           mv local/gems gems
-          zip -r ../mkxp-z.linux.zip Game.AppImage discord_game_sdk.so stdlib gems
+          zip -r ../mkxp-z.linux.zip ${{ steps.name.outputs.name }}.AppImage discord_game_sdk.so stdlib gems
           cd ..
           mv macos/Z-universal.app.zip mkxp-z.macos.zip
 
