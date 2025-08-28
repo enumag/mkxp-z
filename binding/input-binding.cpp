@@ -358,6 +358,12 @@ RB_METHOD(inputControllerPowerLevel) {
     return ret;
 }
 
+RB_METHOD(inputLastDevice) {
+    RB_UNUSED_PARAM;
+
+    return M_SYMBOL(shState->eThread().getLastInputDevice().c_str());
+}
+
 #define AXISFUNC(n, ax1, ax2) \
 RB_METHOD(inputControllerGet##n##Axis) {\
 RB_UNUSED_PARAM;\
@@ -624,6 +630,8 @@ void inputBindingInit() {
     
     _rb_define_module_function(module, "clipboard", inputGetClipboard);
     _rb_define_module_function(module, "clipboard=", inputSetClipboard);
+
+    _rb_define_module_function(module, "last_device", inputLastDevice);
     
     if (rgssVer >= 3) {
         VALUE symHash = rb_hash_new();
