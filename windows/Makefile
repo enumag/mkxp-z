@@ -280,7 +280,7 @@ $(DOWNLOADS)/fluidsynth/cmakebuild/Makefile: $(DOWNLOADS)/fluidsynth/CMakeLists.
 
 $(DOWNLOADS)/fluidsynth/CMakeLists.txt:
 	$(CLONE) $(GITHUB)/FluidSynth/fluidsynth --recurse-submodules $(DOWNLOADS)/fluidsynth; \
-	cd $(DOWNLOADS)/fluidsynth; git checkout c5125b5dfee828ea715618d620651b6d135a39cb
+	cd $(DOWNLOADS)/fluidsynth; git checkout a8c8a4f28c617ddda0519d51350901b75d75882e
 
 # OpenSSL
 openssl: init_dirs $(LIBDIR)/libssl.a
