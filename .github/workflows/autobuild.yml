@@ -36,6 +36,10 @@ jobs:
         id: game
         run: echo ("game=" + $env:GITHUB_REF.replace('refs/tags/', '').split('-')[0]) >> $env:GITHUB_OUTPUT
 
+      - name: Name
+        id: name
+        run: echo name=$(echo ${{ github.ref_name }} | cut -d- -f1 | perl -pe 's/^(.)/\U$1/') >> $env:GITHUB_OUTPUT
+
       - name: Icon
         if: "steps.game.outputs.game != 'default'"
         run: |
@@ -93,10 +97,10 @@ jobs:
           cp -r ../../windows/build-mingw64/lib/ruby/3.1.0 .
           mv ./3.1.0 ./stdlib
           cp ../mkxp-z.exe .
-          cp ../../mkxp.json .
           mkdir gems
           cp ../../ruby_discord_sdk/discord.so gems
           cp ../../ruby_discord_sdk/lib/x86_64/discord_game_sdk.dll .
+          mv mkxp-z.exe ${{ steps.name.outputs.name }}.exe
 
       - name: Disable specifications
         working-directory: build/artifact/stdlib
@@ -113,7 +117,6 @@ jobs:
           path: |
             build/artifact/*.dll
             build/artifact/*.exe
-            build/artifact/mkxp.json
             build/artifact/stdlib/
             build/artifact/gems/
 
@@ -126,7 +129,11 @@ jobs:
 
       - name: Game
         id: game
-        run: echo game=$(echo ${{ github.ref_name }}| cut -d- -f1) >> $GITHUB_OUTPUT
+        run: echo game=$(echo ${{ github.ref_name }} | cut -d- -f1) >> $GITHUB_OUTPUT
+
+      - name: Name
+        id: name
+        run: echo name=$(echo ${{ github.ref_name }} | cut -d- -f1 | sed 's/^\(.\)/\U\1/') >> $GITHUB_OUTPUT
 
       - name: Icon
         if: "steps.game.outputs.game != 'default'"
@@ -188,10 +195,11 @@ jobs:
           cd build/local
           cp -r ../../linux/build-x86_64/lib/ruby/3.1.0 .
           mv ./3.1.0 ./stdlib
-          cp ../../mkxp.json .
           mkdir gems
           cp ../../ruby_discord_sdk/discord.so gems
           cp ../../ruby_discord_sdk/lib/x86_64/discord_game_sdk.so .
+          cp ../mkxp-z-x86_64.AppImage .
+          mv mkxp-z-x86_64.AppImage ${{ steps.name.outputs.name }}.AppImage
 
       - name: Disable specifications
         working-directory: build/local/stdlib
@@ -208,7 +216,6 @@ jobs:
           name: ${{ github.job }}
           path: |
             build/local/**
-            build/mkxp-z-x86_64.AppImage
 
   build-linux-cross:
     if: "false"
@@ -486,7 +493,11 @@ jobs:
 
       - name: Game
         id: game
-        run: echo game=$(echo ${{ github.ref_name }}| cut -d- -f1) >> $GITHUB_OUTPUT
+        run: echo game=$(echo ${{ github.ref_name }} | cut -d- -f1) >> $GITHUB_OUTPUT
+
+      - name: Name
+        id: name
+        run: echo name=$(echo ${{ github.ref_name }} | cut -d- -f1 | perl -pe '$_ = ucfirst($_)') >> $GITHUB_OUTPUT
 
       - name: Icon
         if: "steps.game.outputs.game != 'default'"
@@ -547,13 +558,16 @@ jobs:
 
       - name: Compress app
         working-directory: build/Build/Products/Release
-        run: ditto -c -k --sequesterRsrc --keepParent Z-universal.app Z-universal.app.zip
+        run: |
+          mv Z-universal.app ${{ steps.name.outputs.name }}.app
+          rm ${{ steps.name.outputs.name }}.app/Contents/Game/mkxp.json
+          ditto -c -k --sequesterRsrc --keepParent ${{ steps.name.outputs.name }}.app ${{ steps.name.outputs.name }}.app.zip
 
       - name: Upload archive
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.job }}
-          path: build/Build/Products/Release/Z-universal.app.zip
+          path: build/Build/Products/Release/${{ steps.name.outputs.name }}.app.zip
 
   release:
     name: Release
@@ -580,23 +594,16 @@ jobs:
 
       - name: Name
         id: name
-        run: echo name=$(echo ${{ github.ref_name }}| cut -d- -f1 | sed 's/^\(.\)/\U\1/') >> $GITHUB_OUTPUT
+        run: echo name=$(echo ${{ github.ref_name }} | cut -d- -f1 | sed 's/^\(.\)/\U\1/') >> $GITHUB_OUTPUT
 
       - name: Zip Folder
         run: |
           cd windows
-          rm -f mkxp.json
-          mv mkxp-z.exe ${{ steps.name.outputs.name }}.exe
           zip -r ../mkxp-z.windows.zip ${{ steps.name.outputs.name }}.exe *.dll stdlib gems
           cd ../linux
-          mv mkxp-z-x86_64.AppImage ${{ steps.name.outputs.name }}.AppImage
-          chmod +x ${{ steps.name.outputs.name }}.AppImage
-          mv local/discord_game_sdk.so discord_game_sdk.so
-          mv local/stdlib stdlib
-          mv local/gems gems
           zip -r ../mkxp-z.linux.zip ${{ steps.name.outputs.name }}.AppImage discord_game_sdk.so stdlib gems
           cd ..
-          mv macos/Z-universal.app.zip mkxp-z.macos.zip
+          mv macos/${{ steps.name.outputs.name }}.app.zip mkxp-z.macos.zip
 
       - name: Release
         uses: softprops/action-gh-release@v2
