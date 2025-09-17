@@ -42,8 +42,8 @@ public:
 	             int volume = 100,
 	             int pitch = 100,
 	             double pos = 0,
-				 bool fadeIn = true,
-                 int track = -127);
+                 int track = -127,
+				 bool fadeIn = true);
 	void bgmStop(int track = -127);
 	void bgmFade(int time, int track = -127);
     int bgmGetVolume(int track = -127);

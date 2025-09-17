@@ -293,8 +293,8 @@ void Audio::bgmPlay(const char *filename,
                     int volume,
                     int pitch,
                     double pos,
-                    bool fadeIn,
-                    int track)
+                    int track,
+                    bool fadeIn)
 {
     if (track == -127) {
         for (int i = 0; i < (int)p->bgmTracks.size(); i++) {
