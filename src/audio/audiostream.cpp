@@ -77,7 +77,7 @@ void AudioStream::play(const std::string &filename,
                        int volume,
                        int pitch,
                        double offset,
-					   bool fadeIn)
+					   VALUE fadeIn)
 {
 	finiFadeOutInt();
 
@@ -139,10 +139,20 @@ void AudioStream::play(const std::string &filename,
 	setVolume(Base, _volume);
 	stream.setPitch(_pitch);
 
-	if (offset > 0 && fadeIn)
+	switch (fadeIn)
 	{
-		setVolume(FadeIn, 0);
-		startFadeIn();
+		case true:
+			setVolume(FadeIn, 0);
+			startFadeIn();
+			break;
+		case false:
+			break;
+		default:
+			if (offset > 0)
+			{
+				setVolume(FadeIn, 0);
+				startFadeIn();
+			}
 	}
 
 	current.filename = filename;
