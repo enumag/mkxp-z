@@ -98,7 +98,7 @@ RB_METHOD_GUARD(audio_bgmPlay)
     double pos = 0.0;
     VALUE track = Qnil;
 	int fadeIn = -1;
-    rb_get_args(argc, argv, "z|iifoi", &filename, &volume, &pitch, &pos, &track, &fadeInArg RB_ARG_END);
+    rb_get_args(argc, argv, "z|iifoi", &filename, &volume, &pitch, &pos, &track, &fadeIn RB_ARG_END);
     shState->audio().bgmPlay(filename, volume, pitch, pos, MAYBE_NIL_TRACK(track), fadeIn);
     return Qnil;
 }
