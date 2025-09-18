@@ -294,7 +294,7 @@ void Audio::bgmPlay(const char *filename,
                     int pitch,
                     double pos,
                     int track,
-                    VALUE fadeIn)
+                    int fadeIn)
 {
     if (track == -127) {
         for (int i = 0; i < (int)p->bgmTracks.size(); i++) {

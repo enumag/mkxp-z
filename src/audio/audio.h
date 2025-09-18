@@ -43,7 +43,7 @@ public:
 	             int pitch = 100,
 	             double pos = 0,
                  int track = -127,
-				 VALUE fadeIn = Qnil);
+				 int fadeIn = -1);
 	void bgmStop(int track = -127);
 	void bgmFade(int time, int track = -127);
     int bgmGetVolume(int track = -127);

@@ -128,7 +128,7 @@ struct AudioStream
 	          int volume,
 	          int pitch,
 	          double offset = 0,
-			  VALUE fadeIn = Qnil);
+			  int fadeIn = -1);
 	void stop();
 	void fadeOut(int duration);
 	void seek(double offset);
