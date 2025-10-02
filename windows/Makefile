@@ -147,7 +147,7 @@ $(DOWNLOADS)/libpng/Makefile: $(DOWNLOADS)/libpng/configure
 	--enable-shared=no --enable-static=yes
 
 $(DOWNLOADS)/libpng/configure:
-	$(CLONE) $(GITHUB)/pnggroup/libpng $(DOWNLOADS)/libpng
+	$(CLONE) $(GITHUB)/pnggroup/libpng -b libpng16 $(DOWNLOADS)/libpng
 
 # uchardet
 uchardet: init_dirs $(LIBDIR)/libuchardet.a
