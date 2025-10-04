@@ -109,7 +109,7 @@ $(DOWNLOADS)/ogg/configure: $(DOWNLOADS)/ogg/autogen.sh
 	cd $(DOWNLOADS)/ogg; ./autogen.sh
 
 $(DOWNLOADS)/ogg/autogen.sh:
-	$(CLONE) $(GITHUB)/mkxp-z/ogg $(DOWNLOADS)/ogg
+	$(CLONE) $(GITHUB)/xiph/ogg -b v1.3.4 $(DOWNLOADS)/ogg
 	
 # uchardet
 uchardet: init_dirs $(LIBDIR)/libuchardet.a
