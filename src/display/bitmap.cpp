@@ -2263,6 +2263,10 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
     
     if (p->font->getShadow())
     {
+        if (p->selfLores) {
+            Debug() << "BUG: High-res Bitmap drawText with shadow not implemented";
+        }
+
         if (scaledOutlineSize == 0)
         {
             applyShadow(txtSurf, *p->format, c);
