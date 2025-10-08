@@ -123,6 +123,7 @@ struct SharedFontStatePrivate
 	int fontSizeMethod;
 	float fontScale;
 	bool fontKerning;
+	int fontHinting;
 };
 
 SharedFontState::SharedFontState(const Config &conf)
@@ -161,6 +162,7 @@ SharedFontState::SharedFontState(const Config &conf)
 			p->fontScale = 1.0f;
 	}
 	p->fontKerning = conf.fontKerning;
+	p->fontHinting = conf.fontHinting;
 }
 
 SharedFontState::~SharedFontState()
@@ -581,7 +583,7 @@ _TTF_Font *SharedFontState::getFont(std::string family,
 			if (font)
 			{
 				/* RGSS doesn't use font hinting */
-				TTF_SetFontHinting(font, TTF_HINTING_NONE);
+				TTF_SetFontHinting(font, p->fontHinting);
 			}
 		}
 	}
