@@ -896,6 +896,7 @@ void Font::initDefaults(const SharedFontState &sfs)
 		names.push_back("UmePlus Gothic");
 		names.push_back("MS Gothic");
 		names.push_back("Courier New");
+		FontPrivate::defaultSize = 20;
 		break;
 
 	default:
