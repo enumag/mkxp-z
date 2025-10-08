@@ -200,7 +200,9 @@ void SharedFontState::initFontSetCB(SDL_RWops &ops,
 		set.other = filename;
 }
 
-/* The following code was taken from Wine to emulate
+// https://github.com/wine-mirror/wine/blob/dc34fef45d491516fa8eaee45b2ae40faa7b0bfe/dlls/win32u/freetype.c
+
+/* The following code was derived from Wine to emulate
  * Windows's font size selection behavior. */
  
 /* We're not currently using yMax and yMin for anything,
