@@ -2429,14 +2429,16 @@ IntRect Bitmap::textSize(const char *str)
      * as width yields better results */
     if (p->font->getItalic() && *endPtr == '\0')
         TTF_GlyphMetrics(sdlFont, ucs2, 0, 0, 0, 0, &w);
-    
-    if(!w) {
-        h = 0;
-    } else {
-        /* RGSS normalizes the reported heights.
-         * Note that this may result in the bottoms
-         * of some characters being cut off. */
-         h = TTF_FontHeight(sdlFont);
+
+    if (shState->config().fontHeightReporting == 0) {
+        if(!w) {
+            h = 0;
+        } else {
+            /* RGSS normalizes the reported heights.
+             * Note that this may result in the bottoms
+             * of some characters being cut off. */
+             h = TTF_FontHeight(sdlFont);
+        }
     }
     
     return IntRect(0, 0, w, h);

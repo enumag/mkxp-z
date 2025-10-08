@@ -194,6 +194,7 @@ void Config::read(int argc, char *argv[]) {
         {"fontScale", 0.0f},
         {"fontKerning", true},
         {"fontHinting", 3}, // TTF_HINTING_NONE
+        {"fontHeightReporting", 0},
         {"rubyLoadpath", json::array({})},
         {"JITEnable", false},
         {"JITVerboseLevel", 0},
@@ -330,6 +331,7 @@ try { exp } catch (...) {}
     SET_OPT(fontScale, number);
     SET_OPT(fontKerning, boolean);
     SET_OPT(fontHinting, integer);
+    SET_OPT(fontHeightReporting, integer);
     fillStringVec(opts["rubyLoadpath"], rubyLoadpaths);
     
     auto &bnames = opts["bindingNames"].as_object();

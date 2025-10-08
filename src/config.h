@@ -121,6 +121,7 @@ struct Config {
     float fontScale;
     bool fontKerning;
     int fontHinting;
+    int fontHeightReporting;
     
     std::vector<std::string> rubyLoadpaths;
 
