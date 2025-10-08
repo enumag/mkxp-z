@@ -120,7 +120,6 @@ struct SharedFontStatePrivate
      * empty/invalid family is requested */
     std::string defaultFamily;
 
-	int fontSizeMethod;
 	float fontScale;
 	bool fontKerning;
 	int fontHinting;
@@ -145,21 +144,10 @@ SharedFontState::SharedFontState(const Config &conf)
 		p->subs.insert(from, to);
 	}
 	
-	p->fontSizeMethod = conf.fontSizeMethod;
-	if (!p->fontSizeMethod)
-	{
-		if (rgssVer == 1)
-			p->fontSizeMethod = 1;
-		else
-			p->fontSizeMethod = 2;
-	}
 	p->fontScale = conf.fontScale;
 	if (p->fontScale < 0.1f)
 	{
-		if (p->fontSizeMethod == 1)
-			p->fontScale = 0.9f;
-		else
-			p->fontScale = 1.0f;
+		p->fontScale = 1.0f;
 	}
 	p->fontKerning = conf.fontKerning;
 	p->fontHinting = conf.fontHinting;
@@ -527,64 +515,52 @@ _TTF_Font *SharedFontState::getFont(std::string family,
 		}
 	}
 
-	// Pokemon Essentials games were made with the old font size method in mind,
-	// so we default to it for all XP games.
-	if(p->fontSizeMethod == 1)
-	{
-		if (ppem == 0)
-		{
-			ppem = std::max<int>(size * p->fontScale, 5);
-			ppemMult = std::max<int>(ppem * hiresMult, 1);
-		}
-		font = TTF_OpenFontRW(ops, 1, ppemMult);
-	} else {
-		/* Try to compute the size the same way Windows does. */
-		font = TTF_OpenFontRW(ops, 1, 0);
+	/* Try to compute the size the same way Windows does. */
+	font = TTF_OpenFontRW(ops, 1, 0);
 
+	if (font)
+	{
+		/* Dirty hack to get the FT_Face.
+		 * SDL_ttf will probably never move it from the beginning of the struct. */
+		FT_Face face= *(reinterpret_cast<FT_Face *>( font ));
+		/* This is should always be true, but we may as well check... */
+		if (FT_IS_SCALABLE( face ))
+		{
+			if (ppem == 0)
+			{
+				Font_Container c = { 0 };
+				c.font = font;
+				c.ppem = load_VDMX(&c, size);
+				if (!c.ppem)
+					c.ppem = calc_ppem_for_height( &c, size );
+
+				ppem = std::max<int>(c.ppem * p->fontScale, 1);
+				ppemMult = std::max<int>(ppem * hiresMult, 1);
+			}
+			if (TTF_SetFontSize(font, ppemMult))
+			{
+				TTF_CloseFont(font);
+				font = 0;
+			}
+		} else {
+			/* Someone must have renamed a non-scalable font file to ttf or otf.
+			 * Wine has a scaling setup for these, but I'll just fall back to
+			 * the mkxp method for now. */
+			if (ppem == 0)
+			{
+				ppem = std::max<int>(size * p->fontScale, 5);
+				ppemMult = std::max<int>(ppem * hiresMult, 1);
+			}
+			if (TTF_SetFontSize(font, ppemMult))
+			{
+				TTF_CloseFont(font);
+				font = 0;
+			}
+		}
 		if (font)
 		{
-			/* Dirty hack to get the FT_Face.
-			 * SDL_ttf will probably never move it from the beginning of the struct. */
-			FT_Face face= *(reinterpret_cast<FT_Face *>( font ));
-			/* This is should always be true, but we may as well check... */
-			if (FT_IS_SCALABLE( face ))
-			{
-				if (ppem == 0)
-				{
-					Font_Container c = { 0 };
-					c.font = font;
-					c.ppem = load_VDMX(&c, size);
-					if (!c.ppem)
-						c.ppem = calc_ppem_for_height( &c, size );
-					
-					ppem = std::max<int>(c.ppem * p->fontScale, 1);
-					ppemMult = std::max<int>(ppem * hiresMult, 1);
-				}
-				if (TTF_SetFontSize(font, ppemMult))
-				{
-					TTF_CloseFont(font);
-					font = 0;
-				}
-			} else {
-				/* Someone must have renamed a non-scalable font file to ttf or otf.
-				 * Wine has a scaling setup for these, but I'll just fall back to
-				 * the mkxp method for now. */
-				if (ppem == 0)
-				{
-					ppem = std::max<int>(size * p->fontScale, 5);
-					ppemMult = std::max<int>(ppem * hiresMult, 1);
-				}
-				if (TTF_SetFontSize(font, ppemMult))
-				{
-					TTF_CloseFont(font);
-					font = 0;
-				}
-			}
-			if (font)
-			{
-				/* RGSS doesn't use font hinting */
-				TTF_SetFontHinting(font, p->fontHinting);
-			}
+			/* RGSS doesn't use font hinting */
+			TTF_SetFontHinting(font, p->fontHinting);
 		}
 	}
 	

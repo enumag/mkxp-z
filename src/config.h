@@ -118,7 +118,6 @@ struct Config {
     std::vector<std::string> patches;
     
     std::vector<std::string> fontSubs;
-    int fontSizeMethod;
     float fontScale;
     bool fontKerning;
     int fontHinting;
