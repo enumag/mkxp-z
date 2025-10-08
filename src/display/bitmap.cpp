@@ -2262,7 +2262,16 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
     p->ensureFormat(txtSurf, SDL_PIXELFORMAT_ABGR8888);
     
     if (p->font->getShadow())
-        applyShadow(txtSurf, *p->format, c);
+    {
+        if (scaledOutlineSize == 0)
+        {
+            applyShadow(txtSurf, *p->format, c);
+        }
+        else
+        {
+            Debug() << "BUG: Bitmap drawText with both outline and shadow not implemented";
+        }
+    }
     
     int alignX = rect.x;
     
