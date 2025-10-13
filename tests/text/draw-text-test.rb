@@ -3,11 +3,11 @@
 # License LGPLv2+.
 #
 # Run the suite via the "customScript" field in mkxp.json.
-# Use RGSS v2 for best results. Was compared with Enterbrain VX Runtime.
+# Use RGSS v3 for best results. Was compared with Enterbrain VX Ace Runtime.
 
 def dump(bmp, spr, desc)
 	spr.bitmap = bmp
-	Graphics.wait(1 * 60)
+	Graphics.wait(5 * 60)
 
 	# Comment out these 2 lines for Enterbrain runtime
 	bmp.to_file("test-results/" + desc + ".png")
@@ -19,39 +19,124 @@ Graphics.resize_screen(640, 480)
 
 # Setup font
 fnt = Font.new("Liberation Sans", 72)
+fnt_small = Font.new("Liberation Sans", Font.default_size)
+fnt_mashq = Font.new("Mashq", 15)
+fnt_mashq.bold = true
+fnt_mashq.italic = false
+fnt_mashq.outline = true
+fnt_mashq.shadow = true
+
 
 # Setup splash screen
 bmp = Bitmap.new(640, 480)
 bmp.fill_rect(0, 0, 640, 480, Color.new(0, 0, 0))
 
 bmp.font = fnt
-bmp.draw_text(0, 0, 640, 240, "draw_text Test Suite", 1)
-bmp.draw_text(0, 240, 640, 240, "Starting Now", 1)
+bmp.draw_text(0, 0, 640, 480/3, "draw_text Test Suite", 1)
+bmp.draw_text(0, 480/3, 640, 480/3, "Starting Now", 1)
+bmp.draw_text(0, 2*480/3, 640, 480/3, "(Make sure the fonts are installed!)", 1)
 
 spr = Sprite.new()
 spr.bitmap = bmp
 
-Graphics.wait(1 * 60)
+Graphics.wait(5 * 60)
 
 # Tests start here
 
 bmp = Bitmap.new(640, 480)
 bmp.fill_rect(0, 0, 640, 480, Color.new(0, 0, 0))
+bmp.font = fnt
 bmp.draw_text(0, 0, 640, 240, "Forwards", 1)
 bmp.draw_text(0, 240, 640, 240, "Forwards", 1)
 dump(bmp, spr, "forwards")
 
 bmp = Bitmap.new(640, 480)
 bmp.fill_rect(0, 0, 640, 480, Color.new(0, 0, 0))
+bmp.font = fnt
 bmp.draw_text(0, 0, 640, 240, "Negative Width", 1)
 bmp.draw_text(640, 240, -640, 240, "Negative Width", 1)
 dump(bmp, spr, "negative-width")
 
 bmp = Bitmap.new(640, 480)
 bmp.fill_rect(0, 0, 640, 480, Color.new(0, 0, 0))
+bmp.font = fnt
 bmp.draw_text(0, 0, 640, 240, "Negative Height", 1)
 bmp.draw_text(0, 480, 640, -240, "Negative Height", 1)
 dump(bmp, spr, "negative-height")
+
+bmp = Bitmap.new(640, 480)
+bmp.fill_rect(0, 0, 640, 480, Color.new(0, 0, 0))
+bmp.font = fnt_small
+bmp.draw_text(0, 0, 640, 240, "Character by Character", 1)
+s = "The quick brown fox jumps over the lazy dog"
+pos = Rect.new(0, 240, 640, 240)
+bmp.draw_text(pos, s)
+pos.y += 20
+s.each_char do |char|
+	size = bmp.text_size(char)
+	bmp.draw_text(pos, char)
+	pos.x += size.width
+end
+dump(bmp, spr, "char-by-char")
+
+bmp = Bitmap.new(640, 480)
+bmp.fill_rect(0, 0, 640, 480, Color.new(0, 0, 0))
+bmp.font = fnt_mashq
+bmp.draw_text(0, 0, 640, 240, "Character by Character (Mashq)", 1)
+s = "The quick brown fox jumps over the lazy dog"
+pos = Rect.new(0, 240, 640, 240)
+bmp.draw_text(pos, s)
+pos.y += 20
+s.each_char do |char|
+	size = bmp.text_size(char)
+	bmp.draw_text(pos, char)
+	pos.x += size.width
+end
+dump(bmp, spr, "char-by-char-mashq")
+
+bmp = Bitmap.new(640, 480)
+bmp.fill_rect(0, 0, 640, 480, Color.new(255, 0, 255))
+fnt.outline = false
+fnt.shadow = false
+bmp.font = fnt
+bmp.draw_text(0, 0, 640, 240, "Outline False / Shadow False", 1)
+bmp.draw_text(0, 240, 640, 240, "Hello World", 1)
+fnt.outline = Font.default_outline
+fnt.shadow = Font.default_shadow
+dump(bmp, spr, "outline-false-shadow-false")
+
+bmp = Bitmap.new(640, 480)
+bmp.fill_rect(0, 0, 640, 480, Color.new(255, 0, 255))
+fnt.outline = true
+fnt.shadow = false
+bmp.font = fnt
+bmp.draw_text(0, 0, 640, 240, "Outline True / Shadow False", 1)
+bmp.draw_text(0, 240, 640, 240, "Hello World", 1)
+fnt.outline = Font.default_outline
+fnt.shadow = Font.default_shadow
+dump(bmp, spr, "outline-true-shadow-false")
+
+bmp = Bitmap.new(640, 480)
+bmp.fill_rect(0, 0, 640, 480, Color.new(255, 0, 255))
+fnt.outline = false
+fnt.shadow = true
+bmp.font = fnt
+bmp.draw_text(0, 0, 640, 240, "Outline False / Shadow True", 1)
+bmp.draw_text(0, 240, 640, 240, "Hello World", 1)
+fnt.outline = Font.default_outline
+fnt.shadow = Font.default_shadow
+dump(bmp, spr, "outline-false-shadow-true")
+
+bmp = Bitmap.new(640, 480)
+bmp.fill_rect(0, 0, 640, 480, Color.new(255, 0, 255))
+fnt.outline = true
+fnt.shadow = true
+bmp.font = fnt
+bmp.draw_text(0, 0, 640, 240, "Outline True / Shadow True", 1)
+bmp.draw_text(0, 240, 640, 240, "Hello World", 1)
+fnt.outline = Font.default_outline
+fnt.shadow = Font.default_shadow
+dump(bmp, spr, "outline-true-shadow-true")
 
 # Tests are finished, show exit screen
 
@@ -63,6 +148,6 @@ bmp.draw_text(0, 0, 640, 240, "draw_text Test Suite", 1)
 bmp.draw_text(0, 240, 640, 240, "Has Finished", 1)
 spr.bitmap = bmp
 
-Graphics.wait(1 * 60)
+Graphics.wait(5 * 60)
 
 exit
