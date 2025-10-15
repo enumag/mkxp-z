@@ -1717,7 +1717,7 @@ double Graphics::getScale() const {
 
 void Graphics::setScale(double factor) {
     p->threadData->rqWindowAdjust.wait();
-    factor = clamp(factor, 0.5, 4.0);
+    factor = clamp(factor, 0.5, 8.0);
     
     if (factor == getScale())
         return;
