@@ -30,7 +30,7 @@ jobs:
             mingw-w64-x86_64-gcc
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Game
         id: game
@@ -69,7 +69,7 @@ jobs:
           strip ./mkxp-z.exe
 
       - name: Discord
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: enumag/ruby_discord_sdk
           path: ruby_discord_sdk
@@ -126,7 +126,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Game
         id: game
@@ -176,7 +176,7 @@ jobs:
           ninja install
 
       - name: Discord
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: enumag/ruby_discord_sdk
           path: ruby_discord_sdk
@@ -268,7 +268,7 @@ jobs:
           length: 7
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: actions/cache@v4
         with:
@@ -339,7 +339,7 @@ jobs:
           length: 7
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: actions/cache@v4
         with:
@@ -434,7 +434,7 @@ jobs:
           length: 7
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - uses: actions/cache@v4
         with:
@@ -490,7 +490,7 @@ jobs:
         run: brew remove --force $(brew list)
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Game
         id: game
@@ -529,7 +529,7 @@ jobs:
         run: xcodebuild -project mkxp-z.xcodeproj -configuration "Release" -scheme "Universal" -derivedDataPath "$GITHUB_WORKSPACE/build"
 
       - name: Discord
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: enumag/ruby_discord_sdk
           path: ruby_discord_sdk
