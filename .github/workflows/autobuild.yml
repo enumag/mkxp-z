@@ -4,16 +4,32 @@ name: Automatic Build
 on:
   push:
     tags:
-      - 'reborn-[0-9]+.[0-9]+.[0-9]+'
-      - 'rejuvenation-[0-9]+.[0-9]+.[0-9]+'
-      - 'desolation-[0-9]+.[0-9]+.[0-9]+'
-      - 'ashenfrost-[0-9]+.[0-9]+.[0-9]+'
-      - 'default-[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - 'test-[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
+  set-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Set matrix dynamically
+        id: set-matrix
+        run: |
+          if [[ "${{ github.ref_name }}" == "test-"* ]]; then
+            matrix='["game"]'
+          else
+            matrix='["reborn", "rejuvenation", "desolation", "ashenfrost"]'
+          fi
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+
   build-windows:
     name: Windows
     runs-on: windows-latest
+    needs: set-matrix
+    strategy:
+      matrix:
+        value: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
     steps:
       - uses: msys2/setup-msys2@v2
         with:
@@ -32,19 +48,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Game
-        id: game
-        run: echo ("game=" + $env:GITHUB_REF.replace('refs/tags/', '').split('-')[0]) >> $env:GITHUB_OUTPUT
-
       - name: Name
         id: name
-        run: echo name=$(echo ${{ github.ref_name }} | cut -d- -f1 | perl -pe 's/^(.)/\U$1/') >> $env:GITHUB_OUTPUT
+        run: echo name=$(echo ${{ matrix.value }} | perl -pe 's/^(.)/\U$1/') >> $env:GITHUB_OUTPUT
 
       - name: Icon
-        if: "steps.game.outputs.game != 'default'"
+        if: "matrix.value != 'game'"
         run: |
-          cp icons/${{ steps.game.outputs.game }}.ico windows/icon.ico
-          cp icons/${{ steps.game.outputs.game }}.png assets/icon.png
+          cp icons/${{ matrix.value }}.ico windows/icon.ico
+          cp icons/${{ matrix.value }}.png assets/icon.png
 
       - name: Cache
         uses: actions/cache@v4
@@ -112,9 +124,10 @@ jobs:
         working-directory: build/artifact/stdlib/x64-mingw32
         run: sed -i 's~TOPDIR || DESTDIR + \".*\"~TOPDIR || DESTDIR + \"\"~g' rbconfig.rb
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.job }}
+          name: ${{ github.job }}-${{ matrix.value }}
           path: |
             build/artifact/*.dll
             build/artifact/*.exe
@@ -124,23 +137,23 @@ jobs:
   build-linux-native:
     name: Ubuntu 22.04 x86_64
     runs-on: ubuntu-22.04
+    needs: set-matrix
+    strategy:
+      matrix:
+        value: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Game
-        id: game
-        run: echo game=$(echo ${{ github.ref_name }} | cut -d- -f1) >> $GITHUB_OUTPUT
-
       - name: Name
         id: name
-        run: echo name=$(echo ${{ github.ref_name }} | cut -d- -f1 | sed 's/^\(.\)/\U\1/') >> $GITHUB_OUTPUT
+        run: echo name=$(echo ${{ matrix.value }} | sed 's/^\(.\)/\U\1/') >> $GITHUB_OUTPUT
 
       - name: Icon
-        if: "steps.game.outputs.game != 'default'"
+        if: "matrix.value != 'game'"
         run: |
-          cp icons/${{ steps.game.outputs.game }}.png linux/mkxp-z.png
-          cp icons/${{ steps.game.outputs.game }}.png assets/icon.png
+          cp icons/${{ matrix.value }}.png linux/mkxp-z.png
+          cp icons/${{ matrix.value }}.png assets/icon.png
 
       - name: Cache
         uses: actions/cache@v4
@@ -211,10 +224,10 @@ jobs:
         working-directory: build/local/stdlib/x86_64-linux
         run: sed -i 's~TOPDIR || DESTDIR + \".*\"~TOPDIR || DESTDIR + \"\"~g' rbconfig.rb
 
-      - name: Cache
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.job }}
+          name: ${{ github.job }}-${{ matrix.value }}
           path: |
             build/local/**
 
@@ -485,6 +498,10 @@ jobs:
   build-macos:
     name: macOS
     runs-on: macos-14
+    needs: set-matrix
+    strategy:
+      matrix:
+        value: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
     steps:
       - name: Remove pre-existing homebrew packages
         run: brew remove --force $(brew list)
@@ -492,19 +509,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Game
-        id: game
-        run: echo game=$(echo ${{ github.ref_name }} | cut -d- -f1) >> $GITHUB_OUTPUT
-
       - name: Name
         id: name
-        run: echo name=$(echo ${{ github.ref_name }} | cut -d- -f1 | perl -pe '$_ = ucfirst($_)') >> $GITHUB_OUTPUT
+        run: echo name=$(echo ${{ matrix.value }} | perl -pe '$_ = ucfirst($_)') >> $GITHUB_OUTPUT
 
       - name: Icon
-        if: "steps.game.outputs.game != 'default'"
+        if: "matrix.value != 'game'"
         run: |
-          cp icons/${{ steps.game.outputs.game }}.icns macos/icon.icns
-          cp icons/${{ steps.game.outputs.game }}.png assets/icon.png
+          cp icons/${{ matrix.value }}.icns macos/icon.icns
+          cp icons/${{ matrix.value }}.png assets/icon.png
 
       - name: Cache
         uses: actions/cache@v4
@@ -562,13 +575,13 @@ jobs:
         run: |
           mv Z-universal.app ${{ steps.name.outputs.name }}.app
           rm ${{ steps.name.outputs.name }}.app/Contents/Game/mkxp.json
-          ditto -c -k --sequesterRsrc --keepParent ${{ steps.name.outputs.name }}.app ${{ steps.name.outputs.name }}.app.zip
+          ditto -c -k --sequesterRsrc --keepParent ${{ steps.name.outputs.name }}.app ${{ matrix.value }}.app.zip
 
-      - name: Upload archive
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.job }}
-          path: build/Build/Products/Release/${{ steps.name.outputs.name }}.app.zip
+          name: ${{ github.job }}-${{ matrix.value }}
+          path: build/Build/Products/Release/${{ matrix.value }}.app.zip
 
   release:
     name: Release
@@ -580,31 +593,64 @@ jobs:
     steps:
       - uses: actions/download-artifact@v5
         with:
-          name: build-windows
+          pattern: build-windows-*
           path: windows
 
       - uses: actions/download-artifact@v5
         with:
-          name: build-linux-native
+          pattern: build-linux-native-*
           path: linux
 
       - uses: actions/download-artifact@v5
         with:
-          name: build-macos
+          pattern: build-macos-*
           path: macos
 
-      - name: Name
-        id: name
-        run: echo name=$(echo ${{ github.ref_name }} | cut -d- -f1 | sed 's/^\(.\)/\U\1/') >> $GITHUB_OUTPUT
-
-      - name: Zip Folder
+      - name: Move files
+        if: contains(github.ref_name, 'test-')
         run: |
-          cd windows
-          zip -r ../mkxp-z.windows.zip ${{ steps.name.outputs.name }}.exe *.dll stdlib gems
-          cd ../linux
-          zip -r ../mkxp-z.linux.zip ${{ steps.name.outputs.name }}.AppImage discord_game_sdk.so stdlib gems
-          cd ..
-          mv macos/${{ steps.name.outputs.name }}.app.zip mkxp-z.macos.zip
+          mv windows build-windows-game
+          mkdir windows
+          mv build-windows-game windows/
+          mv linux build-linux-native-game
+          mkdir linux
+          mv build-linux-native-game linux/
+          mv macos build-macos-game
+          mkdir macos
+          mv build-macos-game macos/
+
+      - name: Prepare windows builds
+        working-directory: windows
+        run: |
+          for dir in */; do
+            cd "$dir"
+            name="${dir%/}"
+            game="${name#build-windows-}"
+            zip -r "../../${game}.windows.zip" *.exe *.dll stdlib gems
+            cd ..
+          done
+
+      - name: Prepare linux builds
+        working-directory: linux
+        run: |
+          for dir in */; do
+            cd "$dir"
+            name="${dir%/}"
+            game="${name#build-linux-native-}"
+            zip -r "../../${game}.linux.zip" *.AppImage discord_game_sdk.so stdlib gems
+            cd ..
+          done
+
+      - name: Prepare macos builds
+        working-directory: macos
+        run: |
+          for dir in */; do
+            cd "$dir"
+            name="${dir%/}"
+            game="${name#build-macos-}"
+            mv "${game}.app.zip" "../../${game}.macos.zip"
+            cd ..
+          done
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -612,6 +658,6 @@ jobs:
           draft: false
           fail_on_unmatched_files: true
           files: |
-            mkxp-z.windows.zip
-            mkxp-z.linux.zip
-            mkxp-z.macos.zip
+            *.windows.zip
+            *.linux.zip
+            *.macos.zip
