@@ -126,19 +126,19 @@ $(DOWNLOADS)/pixman/autogen.sh:
 # iconv
 iconv: init_dirs $(LIBDIR)/libiconv.a
 
-$(LIBDIR)/libiconv.a: $(DOWNLOADS)/libiconv-1.16/Makefile
-	cd $(DOWNLOADS)/libiconv-1.16; make; make install
+$(LIBDIR)/libiconv.a: $(DOWNLOADS)/libiconv-1.18/Makefile
+	cd $(DOWNLOADS)/libiconv-1.18; make; make install
 
-$(DOWNLOADS)/libiconv-1.16/Makefile: $(DOWNLOADS)/libiconv-1.16/configure
-	cd $(DOWNLOADS)/libiconv-1.16; \
+$(DOWNLOADS)/libiconv-1.18/Makefile: $(DOWNLOADS)/libiconv-1.18/configure
+	cd $(DOWNLOADS)/libiconv-1.18; \
 	$(CONFIGURE) --enable-static=true --enable-shared=false
 
-$(DOWNLOADS)/libiconv-1.16/configure: $(DOWNLOADS)/libiconv-1.16.tar.gz
+$(DOWNLOADS)/libiconv-1.18/configure: $(DOWNLOADS)/libiconv-1.18.tar.gz
 	cd $(DOWNLOADS); \
-	tar -xzf libiconv-1.16.tar.gz;
+	tar -xzf libiconv-1.18.tar.gz;
 
-$(DOWNLOADS)/libiconv-1.16.tar.gz:
-	wget https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.16.tar.gz -P $(DOWNLOADS)
+$(DOWNLOADS)/libiconv-1.18.tar.gz:
+	wget https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.18.tar.gz -P $(DOWNLOADS)
 
 # uchardet
 uchardet: init_dirs $(LIBDIR)/libuchardet.a
@@ -185,7 +185,7 @@ $(DOWNLOADS)/libpng/Makefile: $(DOWNLOADS)/libpng/configure
 	--enable-shared=no --enable-static=yes
 
 $(DOWNLOADS)/libpng/configure:
-	$(CLONE) $(GITHUB)/mkxp-z/libpng $(DOWNLOADS)/libpng
+	$(CLONE) $(GITHUB)/pnggroup/libpng -b v1.6.50 $(DOWNLOADS)/libpng
 
 # SDL2
 sdl2: init_dirs $(LIBDIR)/libSDL2.a
