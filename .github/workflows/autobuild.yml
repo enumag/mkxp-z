@@ -578,17 +578,17 @@ jobs:
       - build-linux-native
       - build-macos
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: build-windows
           path: windows
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: build-linux-native
           path: linux
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: build-macos
           path: macos
