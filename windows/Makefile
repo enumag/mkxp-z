@@ -273,6 +273,8 @@ fluidsynth: init_dirs $(LIBDIR)/libfluidsynth.a
 $(LIBDIR)/libfluidsynth.a: $(DOWNLOADS)/fluidsynth/cmakebuild/Makefile
 	cd $(DOWNLOADS)/fluidsynth/cmakebuild; \
 	make -j$(NPROC); make install
+	# Remove FluidSynth's dependency on libgomp-1.dll by patching it out of FluidSynth's pkgconfig file (we will statically link to libgomp.a in meson.build instead)
+	sed -i "s|^Libs\.private:.*|Libs.private: $$(grep '^Libs\.private:' $(LIBDIR)/pkgconfig/fluidsynth.pc | head -n 1 | cut -d ' ' -f 2- | python remove-libgomp.py)|" $(LIBDIR)/pkgconfig/fluidsynth.pc
 
 $(DOWNLOADS)/fluidsynth/cmakebuild/Makefile: $(DOWNLOADS)/fluidsynth/CMakeLists.txt
 	cd $(DOWNLOADS)/fluidsynth; mkdir cmakebuild; cd cmakebuild; \
