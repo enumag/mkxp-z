@@ -80,7 +80,8 @@ jobs:
           for file in *.exe *.dll
           do
             ldd_output="$(ldd "$file")"
-            echo "\n$file\n$ldd_output"
+            echo "$file"
+            echo "$ldd_output"
 
             while IFS= read -r line
             do
