@@ -76,21 +76,24 @@ jobs:
         shell: msys2 {0}
         run: |
           cd build/artifact
-          ldd_output="$(ldd mkxp-z.exe)"
-          echo "$ldd_output"
-
           error_flag=
 
-          while IFS= read -r line
+          for file in *.exe *.dll
           do
-            dll_name="$(echo "$line" | sed -e 's/=>/|/g' | cut -d '|' -f 1 | sed -e 's/^[ \t]*//g' -e 's/[ \t]*$//g')"
-            dll_location="$(echo "$line" | sed -e 's/=>/|/g' | cut -d '|' -f 2 | sed -e 's/^[ \t]*//g' -e 's/[ \t]*$//g')"
-            if [[ "$dll_location" = 'not found'* ]] || [[ "$dll_location" = '/mingw64/bin/'* ]] || [[ "$dll_location" = '/mingw64/lib/'* ]] || [[ "$dll_location" = '/mingw64/usr/bin/'* ]] || [[ "$dll_location" = '/mingw64/usr/lib/'* ]]
-            then
-              error_flag=1
-              echo "::error::$dll_name is missing from the artifact"
-            fi
-          done <<< "$ldd_output"
+            ldd_output="$(ldd "$file")"
+            echo "\n$file\n$ldd_output"
+
+            while IFS= read -r line
+            do
+              dll_name="$(echo "$line" | sed -e 's/=>/|/g' | cut -d '|' -f 1 | sed -e 's/^[ \t]*//g' -e 's/[ \t]*$//g')"
+              dll_location="$(echo "$line" | sed -e 's/=>/|/g' | cut -d '|' -f 2 | sed -e 's/^[ \t]*//g' -e 's/[ \t]*$//g')"
+              if [[ "$dll_location" = 'not found'* ]] || [[ "$dll_location" = '/mingw64/bin/'* ]] || [[ "$dll_location" = '/mingw64/lib/'* ]] || [[ "$dll_location" = '/mingw64/usr/bin/'* ]] || [[ "$dll_location" = '/mingw64/usr/lib/'* ]]
+              then
+                error_flag=1
+                echo "::error::$dll_name is missing from the artifact"
+              fi
+            done <<< "$ldd_output"
+          done
 
           if [ -n "$error_flag" ]
           then
