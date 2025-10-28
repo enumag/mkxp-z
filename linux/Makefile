@@ -299,8 +299,7 @@ $(DOWNLOADS)/fluidsynth/cmakebuild/Makefile: $(DOWNLOADS)/fluidsynth/CMakeLists.
 	$(CMAKE) -DBUILD_SHARED_LIBS=no -Denable-sdl3=no -Denable-readline=no -Dosal=embedded -Denable-libinstpatch=no -Denable-jack=no -Denable-portaudio=no -Denable-libsndfile=no -Denable-systemd=no -Denable-dbus=no
 
 $(DOWNLOADS)/fluidsynth/CMakeLists.txt:
-	$(CLONE) $(GITHUB)/FluidSynth/fluidsynth --recurse-submodules $(DOWNLOADS)/fluidsynth; \
-	cd $(DOWNLOADS)/fluidsynth; git checkout a8c8a4f28c617ddda0519d51350901b75d75882e
+	$(CLONE) $(GITHUB)/FluidSynth/fluidsynth -b v2.5.0 --recurse-submodules $(DOWNLOADS)/fluidsynth
 
 # OpenSSL
 openssl: init_dirs $(LIBDIR)/libssl.a
