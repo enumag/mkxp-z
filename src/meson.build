@@ -61,7 +61,7 @@ endif
 if build_static == true
     if host_system == 'windows'
         # '-static-libgcc', '-static-libstdc++' are here to avoid needing to ship a separate libgcc_s_seh-1.dll on Windows; it still works without those flags if you have the dll.
-        global_link_args += ['-static-libgcc', '-static-libstdc++', '-Wl,-Bstatic', '-lgcc', '-lstdc++', '-lpthread', '-lgomp', '-Wl,-Bdynamic']
+        global_link_args += ['-static-libgcc', '-static-libstdc++', '-Wl,-Bstatic', '-lgcc', '-lstdc++', '-lpthread', '-Wl,-Bdynamic']
     else
         global_link_args += ['-static-libgcc', '-static-libstdc++']
     endif
@@ -102,7 +102,7 @@ if host_system == 'windows'
 endif
 
 if get_option('shared_fluid') == true
-    fluidsynth = dependency('fluidsynth', method: host_system == 'windows' ? 'pkg-config' : 'auto', static: build_static)
+    fluidsynth = dependency('fluidsynth', static: build_static)
     add_project_arguments('-DSHARED_FLUID', language: 'cpp')
     global_dependencies += fluidsynth
     if host_system == 'windows'
