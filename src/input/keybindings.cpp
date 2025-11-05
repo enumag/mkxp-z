@@ -89,7 +89,6 @@ static const KbBindingData defaultKbBindings[] =
 	{ SDL_SCANCODE_LSHIFT,   Input::D   },
 	{ SDL_SCANCODE_RSHIFT,   Input::D   },
 	{ SDL_SCANCODE_TAB,      Input::E   },
-	{ SDL_SCANCODE_LALT,     Input::E   },
 	{ SDL_SCANCODE_M,        Input::E   },
 	{ SDL_SCANCODE_F7,       Input::F   },
 };
