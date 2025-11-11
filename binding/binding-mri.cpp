@@ -820,21 +820,22 @@ static VALUE newStringUTF8(const char *string, long length) {
 #endif
 
 struct evalArg {
+    VALUE self;
     VALUE string;
     VALUE filename;
 };
 
 static VALUE evalHelper(evalArg *arg) {
-    VALUE argv[] = {arg->string, Qnil, arg->filename};
-    return rb_funcall2(Qnil, rb_intern("eval"), ARRAY_SIZE(argv), argv);
+    VALUE argv[] = {arg->string, arg->filename};
+    return rb_obj_instance_eval(ARRAY_SIZE(argv), argv, arg->self);
 }
 
-static VALUE evalString(VALUE string, VALUE filename, int *state) {
-    evalArg arg = {string, filename};
+static VALUE evalString(VALUE self, VALUE string, VALUE filename, int *state) {
+    evalArg arg = {self, string, filename};
     return rb_protect((VALUE(*)(VALUE))evalHelper, (VALUE)&arg, state);
 }
 
-static void runCustomScript(const std::string &filename) {
+static void runCustomScript(VALUE self, const std::string &filename) {
     std::string scriptData;
     
     if (!readFileSDL(filename.c_str(), scriptData)) {
@@ -842,7 +843,8 @@ static void runCustomScript(const std::string &filename) {
         return;
     }
     
-    evalString(newStringUTF8(scriptData.c_str(), scriptData.size()),
+    evalString(self,
+               newStringUTF8(scriptData.c_str(), scriptData.size()),
                newStringUTF8(filename.c_str(), filename.size()), NULL);
 }
 
@@ -850,13 +852,14 @@ RB_METHOD_GUARD(mriRgssMain) {
     RB_UNUSED_PARAM;
 
     /* Execute postload scripts */
+    const VALUE self = rb_eval_string("self");
     const Config &conf = shState->rtData().config;
     for (std::vector<std::string>::const_iterator i = conf.postloadScripts.begin();
         i != conf.postloadScripts.end(); ++i)
     {
         if (shState->rtData().rqTerm)
             break;
-        runCustomScript(*i);
+        runCustomScript(self, *i);
     }
 
     while (true) {
@@ -932,10 +935,10 @@ struct BacktraceData {
     BoostHash<std::string, std::string> scriptNames;
 };
 
-bool evalScript(VALUE string, const char *filename)
+bool evalScript(VALUE self, VALUE string, const char *filename)
 {
     int state;
-    evalString(string, rb_utf8_str_new_cstr(filename), &state);
+    evalString(self, string, rb_utf8_str_new_cstr(filename), &state);
     if (state) return false;
     return true;
 }
@@ -1024,13 +1027,15 @@ static void runRMXPScripts(BacktraceData &btData) {
         rb_ary_store(script, 3, rb_utf8_str_new_cstr(decodeBuffer.c_str()));
     }
     
+    const VALUE self = rb_eval_string("self");
+    
     /* Execute preloaded scripts */
     for (std::vector<std::string>::const_iterator i = conf.preloadScripts.begin();
          i != conf.preloadScripts.end(); ++i)
     {
         if (shState->rtData().rqTerm)
             break;
-        runCustomScript(*i);
+        runCustomScript(self, *i);
     }
     
     VALUE exc = rb_gv_get("$!");
@@ -1087,7 +1092,7 @@ static void runRMXPScripts(BacktraceData &btData) {
             
             int state;
             
-            evalString(string, fname, &state);
+            evalString(self, string, fname, &state);
             if (state)
                 break;
         }
@@ -1289,7 +1294,7 @@ static void mriBindingExecute() {
     
     std::string &customScript = conf.customScript;
     if (!customScript.empty())
-        runCustomScript(customScript);
+        runCustomScript(rb_eval_string("self"), customScript);
     else
         runRMXPScripts(btData);
     
