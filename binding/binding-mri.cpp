@@ -826,8 +826,8 @@ struct evalArg {
 };
 
 static VALUE evalHelper(evalArg *arg) {
-    VALUE argv[] = {arg->string, arg->filename};
-    return rb_obj_instance_eval(ARRAY_SIZE(argv), argv, arg->self);
+    VALUE argv[] = {arg->string, Qnil, arg->filename};
+    return rb_funcall2(arg->self, rb_intern("eval"), ARRAY_SIZE(argv), argv);
 }
 
 static VALUE evalString(VALUE self, VALUE string, VALUE filename, int *state) {
