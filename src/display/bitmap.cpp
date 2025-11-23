@@ -2309,7 +2309,7 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
     float squeeze = (float) rect.w / alignmentWidth;
     
     squeeze = clamp(squeeze, squeezeLimit, 1.0f);
-    
+
     if (scaledOutlineSize)
     {
         SDL_Surface *outline;
@@ -2332,19 +2332,24 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
         }
         
         p->ensureFormat(outline, SDL_PIXELFORMAT_ABGR8888);
-        
+
+        // Enterbrain's runtime crops the top row and left column of the text
+        // when blitting it onto the outline. We allow the user to optionally
+        // disable this cropping, since it's arguably quite ugly.
+        int outlineCropUndo = shState->config().fontOutlineCrop ? 0 : scaledOutlineSize;
+
         /* outline should always be at least doubleOutlineSize bigger than txtSurf,
          * but we may as well validate it here anyway. */
-        SDL_Rect inRect = {scaledOutlineSize, scaledOutlineSize,
+        SDL_Rect inRect = {scaledOutlineSize - outlineCropUndo, scaledOutlineSize - outlineCropUndo,
                            std::min<int>({(int)(rect.w / squeeze) - doubleOutlineSize,
                                           txtSurf->w - scaledOutlineSize,
                                           outline->w - doubleOutlineSize
-                                         }),
+                                         }) + outlineCropUndo,
                            std::min<int>({rect.h - doubleOutlineSize,
                                           txtSurf->h - scaledOutlineSize,
                                           outline->h - doubleOutlineSize
-                                         })};
-        SDL_Rect outRect = {doubleOutlineSize, doubleOutlineSize, 0, 0};
+                                         }) + outlineCropUndo};
+        SDL_Rect outRect = {doubleOutlineSize - outlineCropUndo, doubleOutlineSize - outlineCropUndo, 0, 0};
         
         blendText(txtSurf, inRect, c, outline, outRect, co);
         SDL_FreeSurface(txtSurf);
