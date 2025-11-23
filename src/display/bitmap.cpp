@@ -1930,10 +1930,10 @@ static std::string fixupString(const char *str)
     return s;
 }
 
-static void applyShadow(SDL_Surface *&in, const SDL_PixelFormat &fm, const SDL_Color &c)
+static void applyShadow(SDL_Surface *&in, const SDL_PixelFormat &fm, const SDL_Color &c, int offset)
 {
     SDL_Surface *out = SDL_CreateRGBSurface
-    (0, in->w+1, in->h+1, fm.BitsPerPixel, fm.Rmask, fm.Gmask, fm.Bmask, fm.Amask);
+    (0, in->w+offset, in->h+offset, fm.BitsPerPixel, fm.Rmask, fm.Gmask, fm.Bmask, fm.Amask);
     
     float fr = c.r / 255.0f;
     float fg = c.g / 255.0f;
@@ -1944,8 +1944,8 @@ static void applyShadow(SDL_Surface *&in, const SDL_PixelFormat &fm, const SDL_C
      * it with x/y offset by 1, then blend the input surface over it at origin
      * (0,0) using the bitmap blit equation (see shader/bitmapBlit.frag) */
     
-    for (int y = 0; y < in->h+1; ++y)
-        for (int x = 0; x < in->w+1; ++x)
+    for (int y = 0; y < in->h+offset; ++y)
+        for (int x = 0; x < in->w+offset; ++x)
         {
             /* src: input pixel, shd: shadow pixel */
             uint32_t src = 0, shd = 0;
@@ -1957,7 +1957,7 @@ static void applyShadow(SDL_Surface *&in, const SDL_PixelFormat &fm, const SDL_C
                 src = ((uint32_t*) ((uint8_t*) in->pixels + y*in->pitch))[x];
             
             if (y > 0 && x > 0)
-                shd = ((uint32_t*) ((uint8_t*) in->pixels + (y-1)*in->pitch))[x-1];
+                shd = ((uint32_t*) ((uint8_t*) in->pixels + (y-offset)*in->pitch))[x-offset];
             
             /* Set shadow pixel RGB values to 0 (black) */
             shd &= fm.Amask;
@@ -2263,13 +2263,14 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
     
     if (p->font->getShadow())
     {
+        int scaledShadowSize = 1;
         if (p->selfLores) {
-            Debug() << "BUG: High-res Bitmap drawText with shadow not implemented";
+            scaledShadowSize = scaledShadowSize * width() / p->selfLores->width();
         }
 
         if (scaledOutlineSize == 0)
         {
-            applyShadow(txtSurf, *p->format, c);
+            applyShadow(txtSurf, *p->format, c, scaledShadowSize);
         }
         else
         {

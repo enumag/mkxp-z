@@ -9,8 +9,12 @@ def dump(bmp, spr, desc)
 	spr.bitmap = bmp
 	Graphics.wait(5 * 60)
 
-	# Comment out these 2 lines for Enterbrain runtime
-	bmp.to_file("test-results/" + desc + ".png")
+	# Comment out these 6 lines for Enterbrain runtime
+	if bmp.hires.nil?
+		bmp.to_file("test-results/" + desc + ".png")
+	else
+		bmp.hires.to_file("test-results/" + desc + ".png")
+	end
 	System::puts("Finished " + desc)
 end
 
