@@ -2168,7 +2168,11 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
          * However, this looks very ugly in hires mode, so instead we'll fake the effect by
          * precomputing the final outline and text colors. */
         co = outColor.toSDLColor();
-        
+
+        if (c.a != 255) {
+            Debug() << "BUG: Bitmap drawText with outline and translucent text is broken";
+        }
+
         if (c.a != 255 || co.a != 255) {
             /* Step 1: Compute the outline alpha by layering it onto itself */
             uint8_t out_alpha = ((int)co.a * (int)c.a) / 255;
