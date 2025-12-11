@@ -2020,7 +2020,7 @@ static void applyShadow(SDL_Surface *&in, const SDL_PixelFormat &fm, const SDL_C
 /* An implementation of the bitmap blit equation (see shader/bitmapBlit.frag),
  * modified for combining text with its outline. */
 static inline void blendText(SDL_Surface *txtSrf, const SDL_Rect &inRect, const SDL_Color &inColor,
-                           SDL_Surface *outSrf, const SDL_Rect &outRect, const SDL_Color &outColor)
+                           SDL_Surface *outSrf, const SDL_Rect &outRect, const SDL_Color &outColor, bool hasShadow)
 {
     size_t offset = (inRect.x * txtSrf->format->BytesPerPixel) + (inRect.y * txtSrf->pitch);
     uint8_t *txtStart = (uint8_t*)txtSrf->pixels + offset;
@@ -2040,7 +2040,8 @@ static inline void blendText(SDL_Surface *txtSrf, const SDL_Rect &inRect, const 
      * and you'd probably have to zoom in to see it, but if you do see it
      * then it looks kind of ugly so we'll fix it.
      * I don't know if it can actually happen for non-outline text,
-     * but we'll handle it, too, just in case. */
+     * but we'll handle it, too, just in case.
+     * We don't do it for non-outline text if there's a shadow, because I'm not sure how to do this workaround with shadows. */
     uint32_t fullTxtPixel = SDL_MapRGBA(outSrf->format, inColor.r, inColor.g, inColor.b, inColor.a);
     uint32_t fullOutPixel = SDL_MapRGBA(outSrf->format, outColor.r, outColor.g, outColor.b, outColor.a);
     
@@ -2055,7 +2056,14 @@ static inline void blendText(SDL_Surface *txtSrf, const SDL_Rect &inRect, const 
             
             if (txtA >= inColor.a)
             {
-                *outPixel = fullTxtPixel;
+                if (hasShadow)
+                {
+                    *outPixel = *txtPixel;
+                }
+                else
+                {
+                    *outPixel = fullTxtPixel;
+                }
             } else if (outA == 0) {
                 *outPixel = *txtPixel;
             } else if (txtA != 0) {
@@ -2072,6 +2080,14 @@ static inline void blendText(SDL_Surface *txtSrf, const SDL_Rect &inRect, const 
                 float faInv = 1.0f / fa;
                 float co3 = co1 * faInv;
                 float co4 = co2 * faInv;
+
+                if (hasShadow)
+                {
+                    txtR = (*txtPixel >> txtSrf->format->Rshift) & 0xFF;
+                    txtG = (*txtPixel >> txtSrf->format->Gshift) & 0xFF;
+                    txtB = (*txtPixel >> txtSrf->format->Bshift) & 0xFF;
+                }
+
                 // Adding a small number to combat floating point errors.
                 r = std::min<int>((txtR * co3 + outR * co4) + 0.001f, 255);
                 g = std::min<int>((txtG * co3 + outG * co4) + 0.001f, 255);
@@ -2268,14 +2284,7 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
             scaledShadowSize = scaledShadowSize * width() / p->selfLores->width();
         }
 
-        if (scaledOutlineSize == 0)
-        {
-            applyShadow(txtSurf, *p->format, c, scaledShadowSize);
-        }
-        else
-        {
-            Debug() << "BUG: Bitmap drawText with both outline and shadow not implemented";
-        }
+        applyShadow(txtSurf, *p->format, c, scaledShadowSize);
     }
     
     int alignX = rect.x;
@@ -2352,7 +2361,7 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
                                          }) + outlineCropUndo};
         SDL_Rect outRect = {doubleOutlineSize - outlineCropUndo, doubleOutlineSize - outlineCropUndo, 0, 0};
         
-        blendText(txtSurf, inRect, c, outline, outRect, co);
+        blendText(txtSurf, inRect, c, outline, outRect, co, p->font->getShadow());
         SDL_FreeSurface(txtSurf);
         txtSurf = outline;
     }

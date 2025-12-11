@@ -122,6 +122,19 @@ dump(bmp, spr, "outline-true-shadow-false")
 
 bmp = Bitmap.new(640, 480)
 bmp.fill_rect(0, 0, 640, 480, Color.new(255, 0, 255))
+fnt.outline = true
+fnt.out_color = Color.new(0, 255, 0, 128)
+fnt.shadow = false
+bmp.font = fnt
+bmp.draw_text(0, 0, 640, 240, "Outline Green / Shadow False", 1)
+bmp.draw_text(0, 240, 640, 240, "Hello World", 1)
+fnt.outline = Font.default_outline
+fnt.out_color = Font.default_out_color
+fnt.shadow = Font.default_shadow
+dump(bmp, spr, "outline-green-shadow-false")
+
+bmp = Bitmap.new(640, 480)
+bmp.fill_rect(0, 0, 640, 480, Color.new(255, 0, 255))
 fnt.outline = false
 fnt.shadow = true
 bmp.font = fnt
@@ -141,6 +154,19 @@ bmp.draw_text(0, 240, 640, 240, "Hello World", 1)
 fnt.outline = Font.default_outline
 fnt.shadow = Font.default_shadow
 dump(bmp, spr, "outline-true-shadow-true")
+
+bmp = Bitmap.new(640, 480)
+bmp.fill_rect(0, 0, 640, 480, Color.new(255, 0, 255))
+fnt.outline = true
+fnt.out_color = Color.new(0, 255, 0, 128)
+fnt.shadow = true
+bmp.font = fnt
+bmp.draw_text(0, 0, 640, 240, "Outline Green / Shadow True", 1)
+bmp.draw_text(0, 240, 640, 240, "Hello World", 1)
+fnt.outline = Font.default_outline
+fnt.out_color = Font.default_out_color
+fnt.shadow = Font.default_shadow
+dump(bmp, spr, "outline-green-shadow-true")
 
 # Tests are finished, show exit screen
 
