@@ -1956,19 +1956,19 @@ static void applyShadow(SDL_Surface *&in, const SDL_PixelFormat &fm, const SDL_C
             if (y < in->h && x < in->w)
                 src = ((uint32_t*) ((uint8_t*) in->pixels + y*in->pitch))[x];
             
-            if (y > 0 && x > 0)
+            if (y >= offset && x >= offset)
                 shd = ((uint32_t*) ((uint8_t*) in->pixels + (y-offset)*in->pitch))[x-offset];
             
             /* Set shadow pixel RGB values to 0 (black) */
             shd &= fm.Amask;
             
-            if (x == 0 || y == 0)
+            if (x < offset || y < offset)
             {
                 *outP = src;
                 continue;
             }
             
-            if (x == in->w || y == in->h)
+            if (x >= in->w || y >= in->h)
             {
                 *outP = shd;
                 continue;
