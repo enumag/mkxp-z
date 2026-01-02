@@ -239,7 +239,7 @@ void SharedFontState::initFontSetCB(SDL_RWops &ops,
 		for (unsigned int i = 0, name_count = FT_Get_Sfnt_Name_Count(face); i < name_count; ++i)
 		{
 			FT_SfntName aname;
-			if (FT_Get_Sfnt_Name(face, i, &aname) || aname.string_len == 0)
+			if (FT_Get_Sfnt_Name(face, i, &aname))
 				continue;
 			uint32_t key = aname.platform_id;
 			key <<= 16;
@@ -259,7 +259,7 @@ void SharedFontState::initFontSetCB(SDL_RWops &ops,
 		{
 			const std::string &sfnt_family_raw = entry.second.first;
 			const std::string &sfnt_style = entry.second.second;
-			if (sfnt_family_raw.empty() || sfnt_style.empty())
+			if (sfnt_family_raw.empty())
 				continue;
 
 			std::string sfnt_family(sfnt_family_raw);
