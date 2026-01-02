@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <cctype>
 #include <array>
+#include <unordered_map>
 
 #ifdef MKXPZ_BUILD_XCODE
 #include "filesystem/filesystem.h"
@@ -233,29 +234,31 @@ void SharedFontState::initFontSetCB(SDL_RWops &ops,
 
 	if (FT_IS_SFNT(face))
 	{
-		BoostHash<std::tuple<unsigned short, unsigned short, unsigned short>, std::pair<std::string, std::string>> name_map;
+		std::unordered_map<uint32_t, std::pair<std::string, std::string>> name_map;
 
 		for (unsigned int i = 0, name_count = FT_Get_Sfnt_Name_Count(face); i < name_count; ++i)
 		{
 			FT_SfntName aname;
 			if (FT_Get_Sfnt_Name(face, i, &aname) || aname.string_len == 0)
 				continue;
+			uint32_t key = aname.platform_id;
+			key <<= 16;
+			key |= aname.language_id;
 			switch (aname.name_id)
 			{
 				case TT_NAME_ID_FONT_FAMILY:
-					name_map[{aname.platform_id, aname.encoding_id, aname.language_id}].first = decodeSfntName(aname);
+					name_map[key].first = decodeSfntName(aname);
 					break;
 				case TT_NAME_ID_FONT_SUBFAMILY:
-					name_map[{aname.platform_id, aname.encoding_id, aname.language_id}].second = decodeSfntName(aname);
+					name_map[key].second = decodeSfntName(aname);
 					break;
 			}
 		}
 
-		for (auto it = name_map.cbegin(); it != name_map.cend(); ++it)
+		for (const auto &entry : name_map)
 		{
-			const auto &entry = it->second;
-			const std::string &sfnt_family_raw = entry.first;
-			const std::string &sfnt_style = entry.second;
+			const std::string &sfnt_family_raw = entry.second.first;
+			const std::string &sfnt_style = entry.second.second;
 			if (sfnt_family_raw.empty() || sfnt_style.empty())
 				continue;
 
