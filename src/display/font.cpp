@@ -27,6 +27,7 @@
 #include "boost-hash.h"
 #include "util.h"
 #include "config.h"
+#include "encoding.h"
 
 #include "debugwriter.h"
 
@@ -189,6 +190,24 @@ SharedFontState::~SharedFontState()
 	delete p;
 }
 
+static std::string decodeSfntName(const FT_SfntName &aname)
+{
+	std::string str = std::string((const char *)aname.string, (size_t)aname.string_len);
+	if ((aname.platform_id == TT_PLATFORM_MICROSOFT && aname.encoding_id == TT_MS_ID_UNICODE_CS) || aname.platform_id == TT_PLATFORM_APPLE_UNICODE)
+		try
+		{
+			str = Encoding::convertString(str, "UTF-16BE");
+		} catch (Exception)
+		{}
+	else if (aname.platform_id == TT_PLATFORM_MICROSOFT && aname.encoding_id == TT_MS_ID_UCS_4)
+		try
+		{
+			str = Encoding::convertString(str, "UTF-32BE");
+		} catch (Exception)
+		{}
+	return str;
+}
+
 void SharedFontState::initFontSetCB(SDL_RWops &ops,
                                     const std::string &filename)
 {
@@ -224,10 +243,10 @@ void SharedFontState::initFontSetCB(SDL_RWops &ops,
 			switch (aname.name_id)
 			{
 				case TT_NAME_ID_FONT_FAMILY:
-					name_map[{aname.platform_id, aname.encoding_id, aname.language_id}].first = std::string((const char *)aname.string, (size_t)aname.string_len);
+					name_map[{aname.platform_id, aname.encoding_id, aname.language_id}].first = decodeSfntName(aname);
 					break;
 				case TT_NAME_ID_FONT_SUBFAMILY:
-					name_map[{aname.platform_id, aname.encoding_id, aname.language_id}].second = std::string((const char *)aname.string, (size_t)aname.string_len);
+					name_map[{aname.platform_id, aname.encoding_id, aname.language_id}].second = decodeSfntName(aname);
 					break;
 			}
 		}
