@@ -819,7 +819,7 @@ RB_METHOD_GUARD(bitmapInitializeCopy) {
 }
 RB_METHOD_GUARD_END
 
-RB_METHOD_GUARD(bitmapKglInvert){
+RB_METHOD_GUARD(bitmapKglInvert) {
     RB_UNUSED_PARAM;
 
     rb_check_argc(argc, 0);
@@ -827,6 +827,18 @@ RB_METHOD_GUARD(bitmapKglInvert){
     Bitmap *b = getPrivateData<Bitmap>(self);
 
     b->kglInvert();
+    return Qnil;
+}
+RB_METHOD_GUARD_END
+
+RB_METHOD_GUARD(bitmapKglCompressAlpha) {
+    RB_UNUSED_PARAM;
+
+    rb_check_argc(argc, 0);
+
+    Bitmap *b = getPrivateData<Bitmap>(self);
+
+    b->kglCompressAlpha();
     return Qnil;
 }
 RB_METHOD_GUARD_END
@@ -919,5 +931,6 @@ void bitmapBindingInit() {
     INIT_PROP_BIND(Bitmap, Font, "font");
 
     _rb_define_method(klass, "_kgl_invert", bitmapKglInvert);
+    _rb_define_method(klass, "_kgl_compress_alpha", bitmapKglCompressAlpha);
     _rb_define_method(klass, "_kgl_subtract_rect", bitmapKglSubtractRect);
 }

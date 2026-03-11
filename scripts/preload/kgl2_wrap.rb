@@ -131,7 +131,7 @@ module KGL2_Impl
 	class KglCompressAlpha
 		def call(bitmap_id)
 			bitmap = ObjectSpace._id2ref(bitmap_id)
-			bitmap._kgl_compress_alpha # TODO: implement this bitmap function
+			bitmap._kgl_compress_alpha
 			1
 		end
 	end

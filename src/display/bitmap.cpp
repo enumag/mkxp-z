@@ -2977,6 +2977,53 @@ void Bitmap::kglInvert()
     p->onModified();
 }
 
+void Bitmap::kglCompressAlpha()
+{
+    guardDisposed();
+    GUARD_ANIMATED;
+
+    if (hasHires()) {
+        p->selfHires->kglInvert();
+        return;
+    }
+
+    if (isMega()) {
+        for (size_t i = 0; i < (size_t)p->megaSurface->w * (size_t)p->megaSurface->h; ++i) {
+            for (size_t j = 0; j < 3; ++j) {
+                ((uint8_t *)p->megaSurface->pixels)[4 * i + j] =
+                    std::round(((float)((uint8_t *)p->megaSurface->pixels)[4 * i + 3] / 255.0f) * ((uint8_t *)p->megaSurface->pixels)[4 * i + j]);
+            }
+            ((uint8_t *)p->megaSurface->pixels)[4 * i + 3] = 0;
+        }
+    } else {
+        TEXFBO newTex = shState->texPool().request(width(), height());
+
+        FloatRect texRect(rect());
+
+        Quad &quad = shState->gpQuad();
+        quad.setTexPosRect(texRect, texRect);
+        quad.setColor(Vec4(1, 1, 1, 1));
+
+        CompressAlphaShader &shader = shState->shaders().compressAlpha;
+        shader.bind();
+
+        FBO::bind(newTex.fbo);
+        p->pushSetViewport(shader);
+        p->bindTexture(shader, false);
+
+        p->blitQuad(quad);
+
+        p->popViewport();
+
+        TEX::unbind();
+
+        shState->texPool().release(p->gl);
+        p->gl = newTex;
+    }
+
+    p->onModified();
+}
+
 void Bitmap::bindTex(ShaderBase &shader, bool substituteLoresSize)
 {
     // Hires mode is handled by p->bindTexture.

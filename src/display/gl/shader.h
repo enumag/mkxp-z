@@ -339,6 +339,12 @@ public:
 	InvertShader();
 };
 
+class CompressAlphaShader : public ShaderBase
+{
+public:
+	CompressAlphaShader();
+};
+
 class SubtractShader : public BltShader
 {
 public:
@@ -435,6 +441,7 @@ struct ShaderSet
 	BlurShader blur;
 	TilemapVXShader tilemapVX;
 	InvertShader invert;
+	CompressAlphaShader compressAlpha;
 	SubtractShader subtract;
 	BicubicShader bicubic;
 	Lanczos3Shader lanczos3;

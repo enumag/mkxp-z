@@ -28,6 +28,7 @@ embedded_shaders = [
     'blurV.vert',
     'simpleMatrix.vert',
     'invert.frag',
+    'compressAlpha.frag',
     'subtract.frag',
 ]
 

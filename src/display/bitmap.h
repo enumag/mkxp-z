@@ -162,6 +162,7 @@ public:
     void ensureNotPlaying() const;
 
     void kglInvert();
+    void kglCompressAlpha();
 
     // ----------
     

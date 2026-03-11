@@ -62,6 +62,7 @@
 #include "blurV.vert.xxd"
 #include "tilemapvx.vert.xxd"
 #include "invert.frag.xxd"
+#include "compressAlpha.frag.xxd"
 #include "subtract.frag.xxd"
 #endif
 
@@ -836,6 +837,13 @@ void BltShader::setOpacity(float value)
 InvertShader::InvertShader()
 {
 	INIT_SHADER(simple, invert, InvertShader);
+
+	ShaderBase::init();
+}
+
+CompressAlphaShader::CompressAlphaShader()
+{
+	INIT_SHADER(simple, compressAlpha, CompressAlphaShader);
 
 	ShaderBase::init();
 }
