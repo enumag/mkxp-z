@@ -819,6 +819,18 @@ RB_METHOD_GUARD(bitmapInitializeCopy) {
 }
 RB_METHOD_GUARD_END
 
+RB_METHOD_GUARD(bitmapKglInvert){
+    RB_UNUSED_PARAM;
+
+    rb_check_argc(argc, 0);
+
+    Bitmap *b = getPrivateData<Bitmap>(self);
+
+    b->kglInvert();
+    return Qnil;
+}
+RB_METHOD_GUARD_END
+
 void bitmapBindingInit() {
     VALUE klass = rb_define_class("Bitmap", rb_cObject);
 #if RAPI_FULL > 187
@@ -880,4 +892,6 @@ void bitmapBindingInit() {
     _rb_define_method(klass, "snap_to_bitmap", bitmapSnapToBitmap);
     
     INIT_PROP_BIND(Bitmap, Font, "font");
+
+    _rb_define_method(klass, "_kgl_invert", bitmapKglInvert);
 }

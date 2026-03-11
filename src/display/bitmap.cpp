@@ -2848,6 +2848,50 @@ bool Bitmap::getLooping() const
     return p->animation.loop;
 }
 
+void Bitmap::kglInvert() const
+{
+    guardDisposed();
+    GUARD_ANIMATED;
+
+    if (hasHires()) {
+        p->selfHires->kglInvert();
+    }
+
+    if (isMega()) {
+        for (size_t i = 0; i < (size_t)p->megaSurface->w * (size_t)p->megaSurface->h; ++i) {
+            for (size_t j = 0; j < 3; ++j) {
+                ((uint8_t *)p->megaSurface->pixels)[4 * i + j] = ~((uint8_t *)p->megaSurface->pixels)[4 * i + j];
+            }
+        }
+    } else {
+        TEXFBO newTex = shState->texPool().request(width(), height());
+
+        FloatRect texRect(rect());
+
+        Quad &quad = shState->gpQuad();
+        quad.setTexPosRect(texRect, texRect);
+        quad.setColor(Vec4(1, 1, 1, 1));
+
+        InvertShader &shader = shState->shaders().invert;
+        shader.bind();
+
+        FBO::bind(newTex.fbo);
+        p->pushSetViewport(shader);
+        p->bindTexture(shader, false);
+
+        p->blitQuad(quad);
+
+        p->popViewport();
+
+        TEX::unbind();
+
+        shState->texPool().release(p->gl);
+        p->gl = newTex;
+    }
+
+    p->onModified();
+}
+
 void Bitmap::bindTex(ShaderBase &shader, bool substituteLoresSize)
 {
     // Hires mode is handled by p->bindTexture.

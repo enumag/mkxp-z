@@ -331,6 +331,27 @@ private:
 	GLint u_source, u_destination, u_subRect, u_opacity;
 };
 
+class InvertShader : public ShaderBase
+{
+public:
+	InvertShader();
+};
+
+class SubtractShader : public ShaderBase
+{
+public:
+	SubtractShader();
+
+	void setSource();
+	void setDestination(const TEX::ID value);
+	void setDestCoorF(const Vec2 &value);
+	void setSubRect(const FloatRect &value);
+	void setOpacity(float value);
+
+private:
+	GLint u_source, u_destination, u_subRect, u_opacity;
+};
+
 class Lanczos3Shader : public SimpleShader
 {
 public:
@@ -420,6 +441,8 @@ struct ShaderSet
 	SimpleMatrixShader simpleMatrix;
 	BlurShader blur;
 	TilemapVXShader tilemapVX;
+	InvertShader invert;
+	SubtractShader subtract;
 	BicubicShader bicubic;
 	Lanczos3Shader lanczos3;
 #ifdef MKXPZ_SSL

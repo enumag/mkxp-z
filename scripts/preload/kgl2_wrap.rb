@@ -60,7 +60,7 @@ module KGL2_Impl
 	class KglInvert
 		def call(bitmap_id)
 			bitmap = ObjectSpace._id2ref(bitmap_id)
-			bitmap._kgl_invert # TODO: implement this bitmap function
+			bitmap._kgl_invert
 			1
 		end
 	end

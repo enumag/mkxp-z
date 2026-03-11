@@ -154,6 +154,9 @@ public:
     bool getLooping() const;
 
     void ensureNotPlaying() const;
+
+    void kglInvert() const;
+
     // ----------
     
 	/* Binds the backing texture and sets the correct
