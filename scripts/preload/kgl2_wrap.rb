@@ -260,16 +260,16 @@ module KGL2_Impl
 	#     ..............123#################################
 	class KglShadowShaderH
 		def call(x1, x2, y)
-			return 105 if @framebuffer.nil?
-			@framebuffer._kgl_shadow_shader_h(x1, x2, y, @soft_shadows) # TODO: implement this bitmap function
+			return 105 if @shadowbuffer.nil?
+			@shadowbuffer._kgl_shadow_shader_h(x1, x2, y, @soft_shadows) # TODO: implement this bitmap function
 		end
 	end
 
 	# This is the same as ShadowShaderH but with a vertical line instead of a horizontal line.
 	class KglShadowShaderV
 		def call(y1, y2, x)
-			return 105 if @framebuffer.nil?
-			@framebuffer._kgl_shadow_shader_v(y1, y2, x, @soft_shadows) # TODO: implement this bitmap function
+			return 105 if @shadowbuffer.nil?
+			@shadowbuffer._kgl_shadow_shader_v(y1, y2, x, @soft_shadows) # TODO: implement this bitmap function
 		end
 	end
 
@@ -277,8 +277,8 @@ module KGL2_Impl
 	# and the shadow is drawn as if soft shadows is disabled regardless of the actual value of the setting.
 	class KglShadowShaderW
 		def call(y1, y2, x)
-			return 105 if @framebuffer.nil?
-			@framebuffer._kgl_shadow_shader_w(y1, y2, x) # TODO: implement this bitmap function
+			return 105 if @shadowbuffer.nil?
+			@shadowbuffer._kgl_shadow_shader_w(y1, y2, x) # TODO: implement this bitmap function
 		end
 	end
 end
