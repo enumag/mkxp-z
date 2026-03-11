@@ -800,6 +800,11 @@ BltShader::BltShader()
 {
 	INIT_SHADER(simple, bitmapBlit, BltShader);
 
+	init();
+}
+
+void BltShader::init()
+{
 	ShaderBase::init();
 
 	GET_U(source);
@@ -839,32 +844,7 @@ SubtractShader::SubtractShader()
 {
 	INIT_SHADER(simple, subtract, SubtractShader);
 
-	ShaderBase::init();
-
-	GET_U(source);
-	GET_U(destination);
-	GET_U(subRect);
-	GET_U(opacity);
-}
-
-void SubtractShader::setSource()
-{
-	gl.Uniform1i(u_source, 0);
-}
-
-void SubtractShader::setDestination(const TEX::ID value)
-{
-	setTexUniform(u_destination, 1, value);
-}
-
-void SubtractShader::setSubRect(const FloatRect &value)
-{
-	gl.Uniform4f(u_subRect, value.x, value.y, value.w, value.h);
-}
-
-void SubtractShader::setOpacity(float value)
-{
-	gl.Uniform1f(u_opacity, value);
+	BltShader::init();
 }
 
 BicubicShader::BicubicShader()

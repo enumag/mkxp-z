@@ -66,9 +66,15 @@ public:
 	         const Bitmap &source, const IntRect &rect,
 	         int opacity = 255);
 
+	enum BitmapBltMode {
+	    NORMAL,
+	    KGL_SUBTRACT,
+	};
+
 	void stretchBlt(IntRect destRect,
 	                const Bitmap &source, IntRect sourceRect,
-	                int opacity = 255, bool smooth = false);
+	                int opacity = 255, bool smooth = false,
+			enum BitmapBltMode mode = NORMAL);
 
 	void fillRect(int x, int y,
 	              int width, int height,
@@ -155,7 +161,7 @@ public:
 
     void ensureNotPlaying() const;
 
-    void kglInvert() const;
+    void kglInvert();
 
     // ----------
     

@@ -831,6 +831,31 @@ RB_METHOD_GUARD(bitmapKglInvert){
 }
 RB_METHOD_GUARD_END
 
+RB_METHOD_GUARD(bitmapKglSubtractRect) {
+    Bitmap *b = getPrivateData<Bitmap>(self);
+
+    int x, y;
+    VALUE srcObj;
+    VALUE srcRectObj;
+    int opacity = 255;
+
+    Bitmap *src;
+    Rect *srcRect;
+
+    rb_get_args(argc, argv, "iioo|i", &x, &y, &srcObj, &srcRectObj,
+                &opacity RB_ARG_END);
+
+    src = getPrivateDataCheck<Bitmap>(srcObj, BitmapType);
+    if (src) {
+        srcRect = getPrivateDataCheck<Rect>(srcRectObj, RectType);
+        IntRect srcIntRect = srcRect->toIntRect();
+        GFX_GUARD_EXC(b->stretchBlt(IntRect(x, y, abs(srcIntRect.w), abs(srcIntRect.h)), *src, srcIntRect, opacity, false, Bitmap::KGL_SUBTRACT););
+    }
+
+    return Qnil;
+}
+RB_METHOD_GUARD_END
+
 void bitmapBindingInit() {
     VALUE klass = rb_define_class("Bitmap", rb_cObject);
 #if RAPI_FULL > 187
@@ -894,4 +919,5 @@ void bitmapBindingInit() {
     INIT_PROP_BIND(Bitmap, Font, "font");
 
     _rb_define_method(klass, "_kgl_invert", bitmapKglInvert);
+    _rb_define_method(klass, "_kgl_subtract_rect", bitmapKglSubtractRect);
 }

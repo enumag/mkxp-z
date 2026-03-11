@@ -165,16 +165,16 @@ module KGL2_Impl
 			y += bitmap_height if y < 0
 			return 111 if x < 0 || y < 0 || x >= min_width || x >= min_height
 			opacity = opacity > 100 ? 255 : 0 unless @light_blending
-			@framebuffer._kgl_subtract_rect( # TODO: implement this bitmap function
+			@framebuffer._kgl_subtract_rect(
 				x,
 				framebuffer_height - (min_height - y),
+				bitmap,
 				Rect.new(
 					x,
 					bitmap_height - (min_height - y),
 					min_width - x,
 					min_height - y,
 				),
-				bitmap,
 				opacity,
 			)
 			1
