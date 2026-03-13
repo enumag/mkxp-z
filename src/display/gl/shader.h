@@ -333,22 +333,22 @@ private:
 	GLint u_source, u_destination, u_subRect, u_opacity;
 };
 
-class InvertShader : public ShaderBase
+class KglInvertShader : public ShaderBase
 {
 public:
-	InvertShader();
+	KglInvertShader();
 };
 
-class CompressAlphaShader : public ShaderBase
+class KglCompressAlphaShader : public ShaderBase
 {
 public:
-	CompressAlphaShader();
+	KglCompressAlphaShader();
 };
 
-class SubtractShader : public BltShader
+class KglSubtractShader : public BltShader
 {
 public:
-	SubtractShader();
+	KglSubtractShader();
 };
 
 class Lanczos3Shader : public SimpleShader
@@ -440,9 +440,9 @@ struct ShaderSet
 	SimpleMatrixShader simpleMatrix;
 	BlurShader blur;
 	TilemapVXShader tilemapVX;
-	InvertShader invert;
-	CompressAlphaShader compressAlpha;
-	SubtractShader subtract;
+	KglInvertShader kglInvert;
+	KglCompressAlphaShader kglCompressAlpha;
+	KglSubtractShader kglSubtract;
 	BicubicShader bicubic;
 	Lanczos3Shader lanczos3;
 #ifdef MKXPZ_SSL

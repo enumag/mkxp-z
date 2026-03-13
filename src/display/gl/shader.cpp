@@ -61,9 +61,9 @@
 #include "blurH.vert.xxd"
 #include "blurV.vert.xxd"
 #include "tilemapvx.vert.xxd"
-#include "invert.frag.xxd"
-#include "compressAlpha.frag.xxd"
-#include "subtract.frag.xxd"
+#include "kglInvert.frag.xxd"
+#include "kglCompressAlpha.frag.xxd"
+#include "kglSubtract.frag.xxd"
 #endif
 
 #ifdef MKXPZ_BUILD_XCODE
@@ -834,23 +834,23 @@ void BltShader::setOpacity(float value)
 	gl.Uniform1f(u_opacity, value);
 }
 
-InvertShader::InvertShader()
+KglInvertShader::KglInvertShader()
 {
-	INIT_SHADER(simple, invert, InvertShader);
+	INIT_SHADER(simple, kglInvert, KglInvertShader);
 
 	ShaderBase::init();
 }
 
-CompressAlphaShader::CompressAlphaShader()
+KglCompressAlphaShader::KglCompressAlphaShader()
 {
-	INIT_SHADER(simple, compressAlpha, CompressAlphaShader);
+	INIT_SHADER(simple, kglCompressAlpha, KglCompressAlphaShader);
 
 	ShaderBase::init();
 }
 
-SubtractShader::SubtractShader()
+KglSubtractShader::KglSubtractShader()
 {
-	INIT_SHADER(simple, subtract, SubtractShader);
+	INIT_SHADER(simple, kglSubtract, KglSubtractShader);
 
 	BltShader::init();
 }

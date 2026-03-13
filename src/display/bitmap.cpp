@@ -1368,7 +1368,7 @@ void Bitmap::stretchBlt(IntRect destRect,
                                    ((float) sourceWidth / sourceRect.w) * ((float) abs(destRect.w) / gpTex.width),
                                    ((float) sourceHeight / sourceRect.h) * ((float) abs(destRect.h) / gpTex.height));
             
-            BltShader &shader = mode == KGL_SUBTRACT ? shState->shaders().subtract : shState->shaders().blt;
+            BltShader &shader = mode == KGL_SUBTRACT ? shState->shaders().kglSubtract : shState->shaders().blt;
             shader.bind();
             if (srcSurf)
             {
@@ -2957,7 +2957,7 @@ void Bitmap::kglInvert()
         quad.setTexPosRect(texRect, texRect);
         quad.setColor(Vec4(1, 1, 1, 1));
 
-        InvertShader &shader = shState->shaders().invert;
+        KglInvertShader &shader = shState->shaders().kglInvert;
         shader.bind();
 
         FBO::bind(newTex.fbo);
@@ -3004,7 +3004,7 @@ void Bitmap::kglCompressAlpha()
         quad.setTexPosRect(texRect, texRect);
         quad.setColor(Vec4(1, 1, 1, 1));
 
-        CompressAlphaShader &shader = shState->shaders().compressAlpha;
+        KglCompressAlphaShader &shader = shState->shaders().kglCompressAlpha;
         shader.bind();
 
         FBO::bind(newTex.fbo);
