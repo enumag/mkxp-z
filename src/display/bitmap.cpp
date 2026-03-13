@@ -1048,7 +1048,7 @@ static float bltNormOpacity(enum Bitmap::BitmapBltMode mode, int opacity)
 
     switch (mode)
     {
-        default:
+        case Bitmap::NORMAL:
             return (float)opacity / 255.0f;
 
         case Bitmap::KGL_SUBTRACT:
@@ -1115,7 +1115,12 @@ void Bitmap::stretchBlt(IntRect destRect,
     opacity = clamp(opacity, 0, 255);
     
     if (opacity == 0)
-        return;
+        switch (mode) {
+            case NORMAL:
+                return;
+            case KGL_SUBTRACT:
+                break;
+        }
     
     float normOpacity = bltNormOpacity(mode, opacity);
     

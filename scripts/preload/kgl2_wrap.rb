@@ -153,27 +153,33 @@ module KGL2_Impl
 		def call(bitmap_id, x, y, opacity)
 			return 103 if @framebuffer.nil?
 			bitmap = ObjectSpace._id2ref(bitmap_id)
-			bitmap_width = bitmap.width
-			bitmap_height = bitmap.height
 			framebuffer_width = @framebuffer.width
 			framebuffer_height = @framebuffer.height
-			min_width = [bitmap_width, framebuffer_width].min
-			min_height = [bitmap_height, framebuffer_height].min
+			bitmap_width = bitmap.width
+			bitmap_height = bitmap.height
 			x = x.to_i
 			y = y.to_i
-			x += bitmap_width if x < 0
-			y += bitmap_height if y < 0
-			return 111 if x < 0 || y < 0 || x >= min_width || x >= min_height
+			framebuffer_width -= [x, 0].min
+			framebuffer_height -= [y, 0].min
+			bitmap_width += [x, 0].max
+			bitmap_height += [y, 0].max
+			width = [framebuffer_width, bitmap_width].min - x.abs
+			height = [framebuffer_height, bitmap_height].min - y.abs
+			return 111 if width < 0 || height < 0
+			framebuffer_x = [x, 0].max
+			framebuffer_y = [framebuffer_height - bitmap_height, 0].max
+			bitmap_x = -[x, 0].min
+			bitmap_y = [bitmap_height - framebuffer_height, 0].max
 			opacity = opacity > 100 ? 255 : 0 unless @light_blending
 			@framebuffer._kgl_subtract_rect(
-				x,
-				framebuffer_height - (min_height - y),
+				framebuffer_x,
+				framebuffer_y,
 				bitmap,
 				Rect.new(
-					x,
-					bitmap_height - (min_height - y),
-					min_width - x,
-					min_height - y,
+					bitmap_x,
+					bitmap_y,
+					width,
+					height,
 				),
 				opacity,
 			)
