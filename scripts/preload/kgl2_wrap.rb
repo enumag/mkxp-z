@@ -200,14 +200,14 @@ module KGL2_Impl
 	# The actual line segment itself is not part of the shadow, so the shadow begins one pixel above or below the given y coordinate.
 	# If the width or height of the shadowbuffer is even, the center is located at the smaller x or y coordinate.
 	# Please note that the coordinate system uses the bottom-left corner as x = 0, y = 0, and x grows to the right and y grows upwards.
-	# If soft shadows are enabled, there is an additional horizontal 3 pixel wide zone where the pixel components are
-	# linearly interpolated between the original pixel value and transparent black.
+	# If soft shadows are enabled, there is an additional horizontal 3 pixel wide zone where the red, green and blue pixel components are
+	# linearly interpolated between the original color and black and the alpha component is unchanged.
 	# After that, return 1.
-	# For example, if the KGL shadowbuffer is initially 20 pixels by 20 pixels opaque, and
+	# For example, if the KGL shadowbuffer is initially 20 pixels by 20 pixels opaque white, and
 	# this function is called with x1 = 22, x2 = 40 and y = 16 with soft shadows enabled,
 	# the result should be the following, where '.' represents fully opaque pixels, '#' represents fully transparent pixels,
-	# '3' represents 25% opaque pixels, '2' represents 50% opaque pixels and '1' represents 75% opaque pixels.
-	# If soft shadows are disabled, the partially opaque pixels are instead fully transparent.
+	# '3' represents 25% white pixels that are fully opaque, '2' represents 50% white pixels that are fully opaque and '1' represents 75% white pixels that are fully opaque.
+	# If soft shadows are disabled, the partially white pixels are instead transparent black.
 	#     ..................................................
 	#     ..................................................
 	#     ..................................................
@@ -261,7 +261,7 @@ module KGL2_Impl
 	class KglShadowShaderH
 		def call(x1, x2, y)
 			return 105 if @shadowbuffer.nil?
-			@shadowbuffer._kgl_shadow_shader_h(x1, x2, y, @soft_shadows) # TODO: implement this bitmap function
+			@shadowbuffer._kgl_shadow_shader_h(x1, x2, y, @soft_shadows)
 		end
 	end
 
@@ -269,7 +269,7 @@ module KGL2_Impl
 	class KglShadowShaderV
 		def call(y1, y2, x)
 			return 105 if @shadowbuffer.nil?
-			@shadowbuffer._kgl_shadow_shader_v(y1, y2, x, @soft_shadows) # TODO: implement this bitmap function
+			@shadowbuffer._kgl_shadow_shader_v(y1, y2, x, @soft_shadows)
 		end
 	end
 
@@ -278,7 +278,7 @@ module KGL2_Impl
 	class KglShadowShaderW
 		def call(y1, y2, x)
 			return 105 if @shadowbuffer.nil?
-			@shadowbuffer._kgl_shadow_shader_w(y1, y2, x) # TODO: implement this bitmap function
+			@shadowbuffer._kgl_shadow_shader_w(y1, y2, x)
 		end
 	end
 end

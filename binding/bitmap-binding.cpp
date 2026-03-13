@@ -868,6 +868,41 @@ RB_METHOD_GUARD(bitmapKglSubtractRect) {
 }
 RB_METHOD_GUARD_END
 
+RB_METHOD_GUARD(bitmapKglShadowShaderH) {
+    Bitmap *b = getPrivateData<Bitmap>(self);
+
+    int x1, x2, y;
+    bool soft;
+
+    rb_get_args(argc, argv, "iiib", &x1, &x2, &y, &soft RB_ARG_END);
+
+    return RB_INT2FIX(b->kglShadowShaderH(x1, x2, y, soft));
+}
+RB_METHOD_GUARD_END
+
+RB_METHOD_GUARD(bitmapKglShadowShaderV) {
+    Bitmap *b = getPrivateData<Bitmap>(self);
+
+    int y1, y2, x;
+    bool soft;
+
+    rb_get_args(argc, argv, "iiib", &y1, &y2, &x, &soft RB_ARG_END);
+
+    return RB_INT2FIX(b->kglShadowShaderV(y1, y2, x, soft));
+}
+RB_METHOD_GUARD_END
+
+RB_METHOD_GUARD(bitmapKglShadowShaderW) {
+    Bitmap *b = getPrivateData<Bitmap>(self);
+
+    int y1, y2, x;
+
+    rb_get_args(argc, argv, "iii", &y1, &y2, &x RB_ARG_END);
+
+    return RB_INT2FIX(b->kglShadowShaderW(y1, y2, x));
+}
+RB_METHOD_GUARD_END
+
 void bitmapBindingInit() {
     VALUE klass = rb_define_class("Bitmap", rb_cObject);
 #if RAPI_FULL > 187
@@ -933,4 +968,7 @@ void bitmapBindingInit() {
     _rb_define_method(klass, "_kgl_invert", bitmapKglInvert);
     _rb_define_method(klass, "_kgl_compress_alpha", bitmapKglCompressAlpha);
     _rb_define_method(klass, "_kgl_subtract_rect", bitmapKglSubtractRect);
+    _rb_define_method(klass, "_kgl_shadow_shader_h", bitmapKglShadowShaderH);
+    _rb_define_method(klass, "_kgl_shadow_shader_v", bitmapKglShadowShaderV);
+    _rb_define_method(klass, "_kgl_shadow_shader_w", bitmapKglShadowShaderW);
 }

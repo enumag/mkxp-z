@@ -163,6 +163,9 @@ public:
 
     void kglInvert();
     void kglCompressAlpha();
+    int kglShadowShaderH(int x1, int x2, int y, bool soft);
+    int kglShadowShaderV(int y1, int y2, int x, bool soft);
+    int kglShadowShaderW(int y1, int y2, int x);
 
     // ----------
     
