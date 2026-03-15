@@ -209,7 +209,7 @@ module KGL2_Impl
 	# If soft shadows are enabled, there is an additional horizontal 3 pixel wide zone where the red, green and blue pixel components are
 	# linearly interpolated between the original color and black and the alpha component is unchanged.
 	# After that, return 1.
-	# For example, if the KGL shadowbuffer is initially 20 pixels by 20 pixels opaque white, and
+	# For example, if the KGL shadowbuffer is initially 50 pixels by 50 pixels opaque white, and
 	# this function is called with x1 = 22, x2 = 40 and y = 16 with soft shadows enabled,
 	# the result should be the following, where '.' represents fully opaque pixels, '#' represents fully transparent pixels,
 	# '3' represents 25% white pixels that are fully opaque, '2' represents 50% white pixels that are fully opaque and '1' represents 75% white pixels that are fully opaque.
