@@ -73,6 +73,7 @@ module KGL2_Impl
 			src_bitmap = ObjectSpace._id2ref(src_bitmap_id)
 			rect = dst_bitmap.rect
 			return 112 if rect != src_bitmap.rect
+			dst_bitmap.clear
 			dst_bitmap.blt(0, 0, src_bitmap, rect)
 			1
 		end
