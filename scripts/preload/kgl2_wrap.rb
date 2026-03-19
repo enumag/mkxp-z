@@ -10,11 +10,19 @@ require_relative 'win32_wrap' unless Win32API.method_defined? :mkxp_native_call
 require 'objspace'
 
 module KGL2_Impl
-	@initialized = false
-	@light_blending = false
-	@soft_shadows = false
-	@framebuffer = nil
-	@shadowbuffer = nil
+	class << self
+		attr_accessor :initialized
+		attr_accessor :light_blending
+		attr_accessor :soft_shadows
+		attr_accessor :framebuffer
+		attr_accessor :shadowbuffer
+	end
+
+	self.initialized = false
+	self.light_blending = false
+	self.soft_shadows = false
+	self.framebuffer = nil
+	self.shadowbuffer = nil
 
 	class KglVersion
 		def call
@@ -26,8 +34,8 @@ module KGL2_Impl
 	# If the library is not initialized, initialize it and return 1.
 	class KglLoad
 		def call
-			return 102 if @initialized
-			@initialized = true
+			return 102 if KGL2_Impl.initialized
+			KGL2_Impl.initialized = true
 			1
 		end
 	end
@@ -83,9 +91,9 @@ module KGL2_Impl
 	# If the library is initialized, record the bitmap as the KGL framebuffer, then return 1.
 	class KglBindFramebuffer
 		def call(bitmap_id)
-			return 101 unless @initialized
+			return 101 unless KGL2_Impl.initialized
 			bitmap = ObjectSpace._id2ref(bitmap_id)
-			@framebuffer = bitmap
+			KGL2_Impl.framebuffer = bitmap
 			1
 		end
 	end
@@ -94,9 +102,9 @@ module KGL2_Impl
 	# If the library is initialized, record the bitmap as the KGL shadowbuffer, then return 1.
 	class KglBindShadowbuffer
 		def call(bitmap_id)
-			return 101 unless @initialized
+			return 101 unless KGL2_Impl.initialized
 			bitmap = ObjectSpace._id2ref(bitmap_id)
-			@shadowbuffer = bitmap
+			KGL2_Impl.shadowbuffer = bitmap
 			1
 		end
 	end
@@ -104,7 +112,7 @@ module KGL2_Impl
 	# Record the KGL framebuffer as unbound, then return 1.
 	class KglUnbindFramebuffer
 		def call
-			@framebuffer = nil
+			KGL2_Impl.framebuffer = nil
 			1
 		end
 	end
@@ -112,7 +120,7 @@ module KGL2_Impl
 	# Record the KGL shadowbuffer as unbound, then return 1.
 	class KglUnbindShadowbuffer
 		def call
-			@shadowbuffer = nil
+			KGL2_Impl.shadowbuffer = nil
 			1
 		end
 	end
@@ -121,8 +129,8 @@ module KGL2_Impl
 	# If the KGL framebuffer is bound, set the red, green, blue and alpha components of each pixel in the KGL framebuffer to zero, then return 1.
 	class KglClearFramebuffer
 		def call
-			return 103 if @framebuffer.nil?
-			@framebuffer.clear
+			return 103 if KGL2_Impl.framebuffer.nil?
+			KGL2_Impl.framebuffer.clear
 			1
 		end
 	end
@@ -142,7 +150,7 @@ module KGL2_Impl
 	class KglLightBlending
 		def call(enabled_integer)
 			enabled = enabled_integer && enabled_integer != 0 ? true : false
-			@light_blending = enabled
+			KGL2_Impl.light_blending = enabled
 			1
 		end
 	end
@@ -152,10 +160,10 @@ module KGL2_Impl
 	# and return 1 if the operation succeeded or 111 if it failed due to out-of-bounds x and y values.
 	class KglLightShader
 		def call(bitmap_id, x, y, opacity)
-			return 103 if @framebuffer.nil?
+			return 103 if KGL2_Impl.framebuffer.nil?
 			bitmap = ObjectSpace._id2ref(bitmap_id)
-			framebuffer_width = @framebuffer.width
-			framebuffer_height = @framebuffer.height
+			framebuffer_width = KGL2_Impl.framebuffer.width
+			framebuffer_height = KGL2_Impl.framebuffer.height
 			bitmap_width = bitmap.width
 			bitmap_height = bitmap.height
 			x = x.to_i
@@ -171,8 +179,8 @@ module KGL2_Impl
 			framebuffer_y = [framebuffer_height - bitmap_height, 0].max
 			bitmap_x = -[x, 0].min
 			bitmap_y = [bitmap_height - framebuffer_height, 0].max
-			opacity = opacity > 100 ? 255 : 0 unless @light_blending
-			@framebuffer._kgl_subtract_rect(
+			opacity = opacity > 100 ? 255 : 0 unless KGL2_Impl.light_blending
+			KGL2_Impl.framebuffer._kgl_subtract_rect(
 				framebuffer_x,
 				framebuffer_y,
 				bitmap,
@@ -193,7 +201,7 @@ module KGL2_Impl
 	class KglSoftShadows
 		def call(enabled_integer)
 			enabled = enabled_integer && enabled_integer != 0 ? true : false
-			@soft_shadows = enabled
+			KGL2_Impl.soft_shadows = enabled
 			1
 		end
 	end
@@ -267,16 +275,16 @@ module KGL2_Impl
 	#     ..............123#################################
 	class KglShadowShaderH
 		def call(x1, x2, y)
-			return 105 if @shadowbuffer.nil?
-			@shadowbuffer._kgl_shadow_shader_h(x1, x2, y, @soft_shadows)
+			return 105 if KGL2_Impl.shadowbuffer.nil?
+			KGL2_Impl.shadowbuffer._kgl_shadow_shader_h(x1, x2, y, KGL2_Impl.soft_shadows)
 		end
 	end
 
 	# This is the same as ShadowShaderH but with a vertical line instead of a horizontal line.
 	class KglShadowShaderV
 		def call(y1, y2, x)
-			return 105 if @shadowbuffer.nil?
-			@shadowbuffer._kgl_shadow_shader_v(y1, y2, x, @soft_shadows)
+			return 105 if KGL2_Impl.shadowbuffer.nil?
+			KGL2_Impl.shadowbuffer._kgl_shadow_shader_v(y1, y2, x, KGL2_Impl.soft_shadows)
 		end
 	end
 
@@ -284,8 +292,8 @@ module KGL2_Impl
 	# and the shadow is drawn as if soft shadows is disabled regardless of the actual value of the setting.
 	class KglShadowShaderW
 		def call(y1, y2, x)
-			return 105 if @shadowbuffer.nil?
-			@shadowbuffer._kgl_shadow_shader_w(y1, y2, x)
+			return 105 if KGL2_Impl.shadowbuffer.nil?
+			KGL2_Impl.shadowbuffer._kgl_shadow_shader_w(y1, y2, x)
 		end
 	end
 end
