@@ -18,7 +18,7 @@ void main()
 	vec4 frag = texture2D(texture, v_texCoord);
 
 	int x_texel = int(float(w) * v_texCoord.x);
-	int y_texel = int(float(h) * (1. - v_texCoord.y));
+	int y_texel = int(float(h) * v_texCoord.y);
 
 	if ((y < y_center && y_texel < y) || (y > y_center && y_texel >= y)) {
 		float x_start_raw = slope1 * float(y_texel - y_center) + float(x_center);

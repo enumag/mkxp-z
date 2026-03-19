@@ -3068,7 +3068,7 @@ int Bitmap::kglShadowShaderH(int x1, int x2, int y, bool soft)
             y_end = h - 1;
         }
 
-        for (int i = y_end; i >= y_start; --i) {
+        for (int i = y_start; i <= y_end; ++i) {
             double x_start_raw = std::round(slope1 * (double)(i - y_center) + (double)x_center);
             double x_end_raw = std::round(slope2 * (double)(i - y_center) + (double)x_center + 0.2f); // The original shader contains a +0.2 adjustment factor for some reason
 
@@ -3077,7 +3077,7 @@ int Bitmap::kglShadowShaderH(int x1, int x2, int y, bool soft)
 
             if (x_start <= x_end) {
                 std::memset(
-                    shadowbuffer + (size_t)w * (size_t)(h - 1 - i) + (size_t)x_start,
+                    shadowbuffer + (size_t)w * (size_t)i + (size_t)x_start,
                     0,
                     (size_t)4 * ((size_t)x_end - (size_t)x_start + (size_t)1)
                 );
@@ -3088,7 +3088,7 @@ int Bitmap::kglShadowShaderH(int x1, int x2, int y, bool soft)
                     if ((x1 < x_center ? x_start <= j : x_start - j < x1) || x_start >= w) { // This bounds check is incorrect but is consistent with the original shader
                         continue;
                     }
-                    uint32_t *pixel = shadowbuffer + (size_t)w * (size_t)(h - 1 - i) + (size_t)x_start - (size_t)j;
+                    uint32_t *pixel = shadowbuffer + (size_t)w * (size_t)i + (size_t)x_start - (size_t)j;
                     for (size_t k = 0; k < 3; ++k) {
                         ((uint8_t *)pixel)[k] = std::lround((double)((uint8_t *)pixel)[k] * ((double)j / (double)4));
                     }
@@ -3098,7 +3098,7 @@ int Bitmap::kglShadowShaderH(int x1, int x2, int y, bool soft)
                     if (x_end < 0 || x2 < x_center ? x_end >= x2 - j : x_end >= w - j) { // This bounds check is incorrect but is consistent with the original shader
                         continue;
                     }
-                    uint32_t *pixel = shadowbuffer + (size_t)w * (size_t)(h - 1 - i) + (size_t)x_end + (size_t)j;
+                    uint32_t *pixel = shadowbuffer + (size_t)w * (size_t)i + (size_t)x_end + (size_t)j;
                     for (size_t k = 0; k < 3; ++k) {
                         ((uint8_t *)pixel)[k] = std::lround((double)((uint8_t *)pixel)[k] * ((double)j / (double)4));
                     }
@@ -3183,8 +3183,8 @@ int Bitmap::kglShadowShaderV(int y1, int y2, int x, bool soft)
             int y_end = (int)clamp(y_end_raw, -1., y2 < y_center ? (double)y2 - 1. : (double)h - 1.); // This bounds check is incorrect but is consistent with the original shader
 
             if (y_start <= y_end) {
-                for (int j = y_end; j >= y_start; --j) {
-                    shadowbuffer[(size_t)w * (size_t)(h - 1 - j) + (size_t)i] = 0;
+                for (int j = y_start; j <= y_end; ++j) {
+                    shadowbuffer[(size_t)w * (size_t)j + (size_t)i] = 0;
                 }
             }
 
@@ -3193,7 +3193,7 @@ int Bitmap::kglShadowShaderV(int y1, int y2, int x, bool soft)
                     if ((y1 < y_center ? y_start <= j : y_start - j < y1) || y_start >= h) { // This bounds check is incorrect but is consistent with the original shader
                         continue;
                     }
-                    uint32_t *pixel = shadowbuffer + (size_t)w * ((size_t)h - (size_t)1 - ((size_t)y_start - (size_t)j)) + (size_t)i;
+                    uint32_t *pixel = shadowbuffer + (size_t)w * ((size_t)y_start - (size_t)j) + (size_t)i;
                     for (size_t k = 0; k < 3; ++k) {
                         ((uint8_t *)pixel)[k] = std::lround((double)((uint8_t *)pixel)[k] * ((double)j / (double)4));
                     }
@@ -3204,7 +3204,7 @@ int Bitmap::kglShadowShaderV(int y1, int y2, int x, bool soft)
                         if (y_end < 0 || y2 < y_center ? y_end >= y2 - j : y_end >= h - j) { // This bounds check is incorrect but is consistent with the original shader
                             continue;
                         }
-                        uint32_t *pixel = shadowbuffer + (size_t)w * ((size_t)h - (size_t)1 - ((size_t)y_end + (size_t)j)) + (size_t)i;
+                        uint32_t *pixel = shadowbuffer + (size_t)w * ((size_t)y_end + (size_t)j) + (size_t)i;
                         for (size_t k = 0; k < 3; ++k) {
                             ((uint8_t *)pixel)[k] = std::lround((double)((uint8_t *)pixel)[k] * ((double)j / (double)4));
                         }
@@ -3279,9 +3279,9 @@ int Bitmap::kglShadowShaderW(int y1, int y2, int x)
         }
 
         if (x_start <= x_end) {
-            for (int i = y2 - 1; i >= y1; --i) {
+            for (int i = y1; i < y2; ++i) {
                 std::memset(
-                    shadowbuffer + (size_t)w * (size_t)(h - 1 - i) + x_start,
+                    shadowbuffer + (size_t)w * (size_t)i + x_start,
                     0,
                     (size_t)4 * ((size_t)x_end - (size_t)x_start + (size_t)1)
                 );
