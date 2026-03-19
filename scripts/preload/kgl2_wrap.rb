@@ -212,7 +212,8 @@ module KGL2_Impl
 	# Otherwise, if x2 is less than x1, return 1.
 	# Otherwise, cast a shadow of transparent black pixels from an invisible horizontal line segment with the given end points,
 	# radially away from the center of the KGL shadowbuffer.
-	# The actual line segment itself is not part of the shadow, so the shadow begins one pixel above or below the given y coordinate.
+	# If y is less than half the height of the KGL shadowbuffer rounded down, the shadow begins at one less than the y coordinate of the line segment.
+	# If y is greater than half the height of the KGL shadowbuffer rounded down, the shadow begins on the y coordinate of the line segment.
 	# If the width or height of the shadowbuffer is even, the center is located at the smaller x or y coordinate.
 	# Please note that the coordinate system uses the bottom-left corner as x = 0, y = 0, and x grows to the right and y grows upwards.
 	# If soft shadows are enabled, there is an additional horizontal 3 pixel wide zone where the red, green and blue pixel components are

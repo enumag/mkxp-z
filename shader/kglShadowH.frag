@@ -20,7 +20,7 @@ void main()
 	int x_texel = int(float(w) * v_texCoord.x);
 	int y_texel = int(float(h) * (1. - v_texCoord.y));
 
-	if ((y < y_center && y_texel < y) || (y > y_center && y_texel > y)) {
+	if ((y < y_center && y_texel < y) || (y > y_center && y_texel >= y)) {
 		float x_start_raw = slope1 * float(y_texel - y_center) + float(x_center);
 		float x_end_raw = slope2 * float(y_texel - y_center) + float(x_center) + 0.2; // The original shader contains a +0.2 adjustment factor for some reason
 

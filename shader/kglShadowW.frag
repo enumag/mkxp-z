@@ -17,7 +17,7 @@ void main()
 	int y_texel = int(float(h) * (1. - v_texCoord.y));
 
 	if (
-		((x < x_center && x_texel < x) || (x > x_center && x_texel > x))
+		((x < x_center && x_texel < x) || (x > x_center && x_texel >= x))
 			&& y_texel >= y1
 			&& y_texel < y2
 	) {

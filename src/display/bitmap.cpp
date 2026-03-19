@@ -3064,7 +3064,7 @@ int Bitmap::kglShadowShaderH(int x1, int x2, int y, bool soft)
             y_start = 0;
             y_end = y - 1;
         } else {
-            y_start = y + 1;
+            y_start = y;
             y_end = h - 1;
         }
 
@@ -3171,7 +3171,7 @@ int Bitmap::kglShadowShaderV(int y1, int y2, int x, bool soft)
             x_start = 0;
             x_end = x - 1;
         } else {
-            x_start = x + 1;
+            x_start = x;
             x_end = w - 1;
         }
 
@@ -3274,7 +3274,7 @@ int Bitmap::kglShadowShaderW(int y1, int y2, int x)
             x_start = 0;
             x_end = x - 1;
         } else {
-            x_start = x + 1;
+            x_start = x;
             x_end = w - 1;
         }
 
