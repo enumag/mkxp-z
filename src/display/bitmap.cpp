@@ -3094,13 +3094,15 @@ int Bitmap::kglShadowShaderH(int x1, int x2, int y, bool soft)
                     }
                 }
 
-                for (int j = 1; j <= 3; ++j) {
-                    if (x_end < 0 || x2 < x_center ? x_end >= x2 - j : x_end >= w - j) { // This bounds check is incorrect but is consistent with the original shader
-                        continue;
-                    }
-                    uint32_t *pixel = shadowbuffer + (size_t)w * (size_t)i + (size_t)x_end + (size_t)j;
-                    for (size_t k = 0; k < 3; ++k) {
-                        ((uint8_t *)pixel)[k] = std::lround((double)((uint8_t *)pixel)[k] * ((double)j / (double)4));
+                if (x2 != x_center) {
+                    for (int j = 1; j <= 3; ++j) {
+                        if (x_end < 0 || x2 < x_center ? x_end >= x2 - j : x_end >= w - j) { // This bounds check is incorrect but is consistent with the original shader
+                            continue;
+                        }
+                        uint32_t *pixel = shadowbuffer + (size_t)w * (size_t)i + (size_t)x_end + (size_t)j;
+                        for (size_t k = 0; k < 3; ++k) {
+                            ((uint8_t *)pixel)[k] = std::lround((double)((uint8_t *)pixel)[k] * ((double)j / (double)4));
+                        }
                     }
                 }
             }
@@ -3137,13 +3139,13 @@ int Bitmap::kglShadowShaderH(int x1, int x2, int y, bool soft)
     return 1;
 }
 
-int Bitmap::kglShadowShaderV(int y1, int y2, int x, bool soft)
+int Bitmap::kglShadowShaderV(int y1, int y2, int x, bool wall, bool soft)
 {
     guardDisposed();
     GUARD_ANIMATED;
 
     if (hasHires()) {
-        return p->selfHires->kglShadowShaderV(y1 * p->selfHires->height() / height(), y2 * p->selfHires->height() / height(), x * p->selfHires->width() / width(), soft);
+        return p->selfHires->kglShadowShaderV(y1 * p->selfHires->height() / height(), y2 * p->selfHires->height() / height(), x * p->selfHires->width() / width(), wall, soft);
     }
 
     int w = width();
@@ -3179,8 +3181,8 @@ int Bitmap::kglShadowShaderV(int y1, int y2, int x, bool soft)
             double y_start_raw = std::round(slope1 * (double)(i - x_center) + (double)y_center);
             double y_end_raw = std::round(slope2 * (double)(i - x_center) + (double)y_center + 0.2f); // The original shader contains a +0.2 adjustment factor for some reason
 
-            int y_start = (int)clamp(y_start_raw, 0., (double)h);
-            int y_end = (int)clamp(y_end_raw, -1., y2 < y_center ? (double)y2 - 1. : (double)h - 1.); // This bounds check is incorrect but is consistent with the original shader
+            int y_start = wall && y1 >= y_center ? y1 : (int)clamp(y_start_raw, 0., (double)h);
+            int y_end = wall && y2 >= y_center ? y2 - 1 : (int)clamp(y_end_raw, -1., y2 < y_center ? (double)y2 - 1. : (double)h - 1.); // This bounds check is incorrect but is consistent with the original shader
 
             if (y_start <= y_end) {
                 for (int j = y_start; j <= y_end; ++j) {
@@ -3189,17 +3191,19 @@ int Bitmap::kglShadowShaderV(int y1, int y2, int x, bool soft)
             }
 
             if (soft) {
-                for (int j = 3; j >= 1; --j) {
-                    if ((y1 < y_center ? y_start <= j : y_start - j < y1) || y_start >= h) { // This bounds check is incorrect but is consistent with the original shader
-                        continue;
-                    }
-                    uint32_t *pixel = shadowbuffer + (size_t)w * ((size_t)y_start - (size_t)j) + (size_t)i;
-                    for (size_t k = 0; k < 3; ++k) {
-                        ((uint8_t *)pixel)[k] = std::lround((double)((uint8_t *)pixel)[k] * ((double)j / (double)4));
+                if (!wall || y1 < y_center) {
+                    for (int j = 3; j >= 1; --j) {
+                        if ((y1 < y_center ? y_start <= j : y_start - j < y1) || y_start >= h) { // This bounds check is incorrect but is consistent with the original shader
+                            continue;
+                        }
+                        uint32_t *pixel = shadowbuffer + (size_t)w * ((size_t)y_start - (size_t)j) + (size_t)i;
+                        for (size_t k = 0; k < 3; ++k) {
+                            ((uint8_t *)pixel)[k] = std::lround((double)((uint8_t *)pixel)[k] * ((double)j / (double)4));
+                        }
                     }
                 }
 
-                if (y2 != y_center) { // This check is present only in the V shader; the H shader doesn't have it
+                if (y2 != y_center && (!wall || y2 < y_center)) {
                     for (int j = 1; j <= 3; ++j) {
                         if (y_end < 0 || y2 < y_center ? y_end >= y2 - j : y_end >= h - j) { // This bounds check is incorrect but is consistent with the original shader
                             continue;
@@ -3223,82 +3227,7 @@ int Bitmap::kglShadowShaderV(int y1, int y2, int x, bool soft)
 
         KglShadowShaderV &shader = shState->shaders().kglShadowV;
         shader.bind();
-        shader.setParams(y1, y2, x, soft, w, h, x_center, y_center, slope1, slope2);
-
-        FBO::bind(newTex.fbo);
-        p->pushSetViewport(shader);
-        p->bindTexture(shader, false);
-
-        p->blitQuad(quad);
-
-        p->popViewport();
-
-        TEX::unbind();
-
-        shState->texPool().release(p->gl);
-        p->gl = newTex;
-    }
-
-    p->onModified();
-
-    return 1;
-}
-
-int Bitmap::kglShadowShaderW(int y1, int y2, int x)
-{
-    guardDisposed();
-    GUARD_ANIMATED;
-
-    if (hasHires()) {
-        return p->selfHires->kglShadowShaderW(y1 * p->selfHires->height() / height(), y2 * p->selfHires->height() / height(), x * p->selfHires->width() / width());
-    }
-
-    int w = width();
-    int h = height();
-
-    if (x < 0 || x >= h || x == w / 2) {
-        return 111;
-    }
-
-    if (y2 < y1 || w <= 0 || h <= 0) {
-        return 1;
-    }
-
-    int x_center = w / 2;
-
-    if (isMega()) {
-        uint32_t *shadowbuffer = (uint32_t *)p->megaSurface->pixels;
-
-        int x_start, x_end;
-        if (x < x_center) {
-            x_start = 0;
-            x_end = x - 1;
-        } else {
-            x_start = x;
-            x_end = w - 1;
-        }
-
-        if (x_start <= x_end) {
-            for (int i = y1; i < y2; ++i) {
-                std::memset(
-                    shadowbuffer + (size_t)w * (size_t)i + x_start,
-                    0,
-                    (size_t)4 * ((size_t)x_end - (size_t)x_start + (size_t)1)
-                );
-            }
-        }
-    } else {
-        TEXFBO newTex = shState->texPool().request(width(), height());
-
-        FloatRect texRect(rect());
-
-        Quad &quad = shState->gpQuad();
-        quad.setTexPosRect(texRect, texRect);
-        quad.setColor(Vec4(1, 1, 1, 1));
-
-        KglShadowShaderW &shader = shState->shaders().kglShadowW;
-        shader.bind();
-        shader.setParams(y1, y2, x, w, h, x_center);
+        shader.setParams(y1, y2, x, wall, soft, w, h, x_center, y_center, slope1, slope2);
 
         FBO::bind(newTex.fbo);
         p->pushSetViewport(shader);

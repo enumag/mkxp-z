@@ -215,7 +215,8 @@ module KGL2_Impl
 	# If y is less than half the height of the KGL shadowbuffer rounded down, the shadow begins at one less than the y coordinate of the line segment.
 	# If y is greater than half the height of the KGL shadowbuffer rounded down, the shadow begins on the y coordinate of the line segment.
 	# If the width or height of the shadowbuffer is even, the center is located at the smaller x or y coordinate.
-	# If soft shadows are enabled, there is an additional horizontal 3 pixel wide zone where the red, green and blue pixel components are
+	# If soft shadows are enabled, for edges of the shadow that are not exactly horizontal or vertical,
+	# there is an additional horizontal 3 pixel wide zone where the red, green and blue pixel components are
 	# linearly interpolated between the original color and black and the alpha component is unchanged.
 	# After that, return 1.
 	# For example, if the KGL shadowbuffer is initially 50 pixels by 50 pixels opaque white, and
@@ -284,16 +285,16 @@ module KGL2_Impl
 	class KglShadowShaderV
 		def call(y1, y2, x)
 			return 105 if KGL2_Impl.shadowbuffer.nil?
-			KGL2_Impl.shadowbuffer._kgl_shadow_shader_v(y1, y2, x, KGL2_Impl.soft_shadows)
+			KGL2_Impl.shadowbuffer._kgl_shadow_shader_v(y1, y2, x, false, KGL2_Impl.soft_shadows)
 		end
 	end
 
-	# This is the same as ShadowShaderV except the shadow is cast horizontally instead of radially,
-	# and the shadow is drawn as if soft shadows is disabled regardless of the actual value of the setting.
+	# This is the same as ShadowShaderV except the part of the shadow where the x coordinate is greater than or equal to
+	# half the width of the KGL shadowbuffer rounded down is cast horizontally instead of radially.
 	class KglShadowShaderW
 		def call(y1, y2, x)
 			return 105 if KGL2_Impl.shadowbuffer.nil?
-			KGL2_Impl.shadowbuffer._kgl_shadow_shader_w(y1, y2, x)
+			KGL2_Impl.shadowbuffer._kgl_shadow_shader_v(y1, y2, x, true, KGL2_Impl.soft_shadows)
 		end
 	end
 end

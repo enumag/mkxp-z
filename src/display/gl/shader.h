@@ -367,21 +367,10 @@ class KglShadowShaderV : public ShaderBase
 public:
 	KglShadowShaderV();
 
-	void setParams(int y1, int y2, int x, bool soft, int w, int h, int x_center, int y_center, double slope1, double slope2);
+	void setParams(int y1, int y2, int x, bool wall, bool soft, int w, int h, int x_center, int y_center, double slope1, double slope2);
 
 private:
-	GLint u_y1, u_y2, u_x, u_soft, u_w, u_h, u_x_center, u_y_center, u_slope1, u_slope2;
-};
-
-class KglShadowShaderW : public ShaderBase
-{
-public:
-	KglShadowShaderW();
-
-	void setParams(int y1, int y2, int x, int w, int h, int x_center);
-
-private:
-	GLint u_y1, u_y2, u_x, u_w, u_h, u_x_center;
+	GLint u_y1, u_y2, u_x, u_wall, u_soft, u_w, u_h, u_x_center, u_y_center, u_slope1, u_slope2;
 };
 
 class Lanczos3Shader : public SimpleShader
@@ -478,7 +467,6 @@ struct ShaderSet
 	KglSubtractShader kglSubtract;
 	KglShadowShaderH kglShadowH;
 	KglShadowShaderV kglShadowV;
-	KglShadowShaderW kglShadowW;
 	BicubicShader bicubic;
 	Lanczos3Shader lanczos3;
 #ifdef MKXPZ_SSL

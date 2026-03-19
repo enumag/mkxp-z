@@ -37,7 +37,8 @@ void main()
 			) {
 				frag.rgb *= float(x_start - x_texel) / 4.;
 			} else if (
-				x_texel > x_end
+				x2 != x_center
+					&& x_texel > x_end
 					&& x_texel - x_end <= 3
 					&& (x2 >= x_center || x_texel < x2) // This bounds check is incorrect but is consistent with the original shader
 			) {
