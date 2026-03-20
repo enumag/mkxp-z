@@ -289,8 +289,8 @@ module KGL2_Impl
 		end
 	end
 
-	# This is the same as ShadowShaderV except the part of the shadow where the x coordinate is greater than or equal to
-	# half the width of the KGL shadowbuffer rounded down is cast horizontally instead of radially.
+	# This is the same as ShadowShaderV except the part of the shadow where the y coordinate is greater than or equal to
+	# half the height of the KGL shadowbuffer rounded down is cast horizontally instead of radially.
 	class KglShadowShaderW
 		def call(y1, y2, x)
 			return 105 if KGL2_Impl.shadowbuffer.nil?
