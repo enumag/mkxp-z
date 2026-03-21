@@ -13,6 +13,11 @@ uniform float slope2;
 
 varying vec2 v_texCoord;
 
+float _round(float x)
+{
+	return x >= 0. ? x + 0.5 : x - 0.5;
+}
+
 void main()
 {
 	vec4 frag = texture2D(texture, v_texCoord);
@@ -24,8 +29,8 @@ void main()
 		float x_start_raw = slope1 * float(y_texel - y_center) + float(x_center);
 		float x_end_raw = slope2 * float(y_texel - y_center) + float(x_center) + 0.2; // The original shader contains a +0.2 adjustment factor for some reason
 
-		int x_start = int(clamp(x_start_raw + 0.5, 0., float(w)));
-		int x_end = int(clamp(x_end_raw + 0.5, -1., x2 < x_center ? float(x2) - 1. : float(w) - 1.)); // This bounds check is incorrect but is consistent with the original shader
+		int x_start = int(clamp(_round(x_start_raw), 0., float(w) + 3.));
+		int x_end = int(clamp(_round(x_end_raw), -4., x2 < x_center ? float(x2) - 1. : float(w) - 1.)); // This bounds check is incorrect but is consistent with the original shader
 
 		if (x_texel >= x_start && x_texel <= x_end) {
 			frag = vec4(0., 0., 0., 0.);
@@ -34,12 +39,15 @@ void main()
 				x_texel < x_start
 					&& x_start - x_texel <= 3
 					&& (x1 < x_center || x_texel >= x1) // This bounds check is incorrect but is consistent with the original shader
+					&& (x2 >= x_center || x_texel < x2) // This bounds check is incorrect but is consistent with the original shader
 			) {
 				frag.rgb *= float(x_start - x_texel) / 4.;
-			} else if (
+			}
+			if (
 				x2 != x_center
 					&& x_texel > x_end
 					&& x_texel - x_end <= 3
+					&& (x1 < x_center || x_texel >= x1) // This bounds check is incorrect but is consistent with the original shader
 					&& (x2 >= x_center || x_texel < x2) // This bounds check is incorrect but is consistent with the original shader
 			) {
 				frag.rgb *= float(x_texel - x_end) / 4.;

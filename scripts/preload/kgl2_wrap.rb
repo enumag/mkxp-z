@@ -209,7 +209,6 @@ module KGL2_Impl
 	# If the KGL shadowbuffer is unbound, return 105.
 	# If the KGL shadowbuffer is bound but y is less than 0, greater than or equal to the height of the KGL shadowbuffer or
 	# exactly equal to half the height of the KGL shadowbuffer rounded down, return 111.
-	# Otherwise, if x2 is less than x1, return 1.
 	# Otherwise, cast a shadow of transparent black pixels from an invisible horizontal line segment with the given end points,
 	# radially away from the center of the KGL shadowbuffer.
 	# If y is less than half the height of the KGL shadowbuffer rounded down, the shadow begins at one less than the y coordinate of the line segment.

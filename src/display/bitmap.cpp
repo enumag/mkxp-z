@@ -1131,7 +1131,7 @@ void Bitmap::stretchBlt(IntRect destRect,
     
     SDL_Surface *srcSurf = source.megaSurface();
     SDL_Surface *blitTemp = 0;
-    bool touchesTaintedArea = p->touchesTaintedArea(destRect);
+    bool touchesTaintedArea = mode != NORMAL || opacity < 255 || p->touchesTaintedArea(destRect);
     bool unpack_subimage = srcSurf && gl.unpack_subimage;
 
     const bool scaleIsOne = sourceRect.w == destRect.w && sourceRect.h == destRect.h;
@@ -1139,7 +1139,7 @@ void Bitmap::stretchBlt(IntRect destRect,
         smooth = false;
     }
 
-    if (!srcSurf && opacity == 255 && !touchesTaintedArea && mode == NORMAL)
+    if (!srcSurf && opacity == 255 && !touchesTaintedArea)
     {
         /* Fast blit */
         // TODO: Use bitmapSmoothScaling/bitmapSmoothScalingDown configs for this.
@@ -1263,7 +1263,7 @@ void Bitmap::stretchBlt(IntRect destRect,
                 sourceRect.y = 0;
             }
             
-            if (opacity == 255 && !touchesTaintedArea)
+            if (!touchesTaintedArea)
             {
                 if (!subImageFix &&
                     sourceRect.w == destRect.w && sourceRect.h == destRect.h &&
@@ -1317,7 +1317,7 @@ void Bitmap::stretchBlt(IntRect destRect,
                 }
             }
         }
-        if (opacity < 255 || touchesTaintedArea)
+        if (touchesTaintedArea)
         {
             /* We're touching a tainted area or still need to reduce opacity */
              
@@ -3046,9 +3046,12 @@ int Bitmap::kglShadowShaderH(int x1, int x2, int y, bool soft)
         return 111;
     }
 
-    if (x2 < x1 || w <= 0 || h <= 0) {
+    if (w <= 0 || h <= 0) {
         return 1;
     }
+
+    x1 = clamp(x1, 0, w - 1);
+    x2 = clamp(x2, 0, w - 1);
 
     int x_center = w / 2;
     int y_center = h / 2;
@@ -3072,8 +3075,8 @@ int Bitmap::kglShadowShaderH(int x1, int x2, int y, bool soft)
             double x_start_raw = std::round(slope1 * (double)(i - y_center) + (double)x_center);
             double x_end_raw = std::round(slope2 * (double)(i - y_center) + (double)x_center + 0.2f); // The original shader contains a +0.2 adjustment factor for some reason
 
-            int x_start = (int)clamp(x_start_raw, 0., (double)w);
-            int x_end = (int)clamp(x_end_raw, -1., x2 < x_center ? (double)x2 - 1. : (double)w - 1.); // This bounds check is incorrect but is consistent with the original shader
+            int x_start = (int)clamp(x_start_raw, 0., (double)w + 3.);
+            int x_end = (int)clamp(x_end_raw, -4., x2 < x_center ? (double)x2 - 1. : (double)w - 1.); // This bounds check is incorrect but is consistent with the original shader
 
             if (x_start <= x_end) {
                 std::memset(
@@ -3085,7 +3088,10 @@ int Bitmap::kglShadowShaderH(int x1, int x2, int y, bool soft)
 
             if (soft) {
                 for (int j = 3; j >= 1; --j) {
-                    if ((x1 < x_center ? x_start <= j : x_start - j < x1) || x_start >= w) { // This bounds check is incorrect but is consistent with the original shader
+                    if (
+                        (x1 < x_center ? x_start - j < 0 : x_start - j < x1) // This bounds check is incorrect but is consistent with the original shader
+                            || (x2 < x_center ? x_start - j >= x2 : x_start - j >= w) // This bounds check is incorrect but is consistent with the original shader
+                    ) {
                         continue;
                     }
                     uint32_t *pixel = shadowbuffer + (size_t)w * (size_t)i + (size_t)x_start - (size_t)j;
@@ -3096,7 +3102,10 @@ int Bitmap::kglShadowShaderH(int x1, int x2, int y, bool soft)
 
                 if (x2 != x_center) {
                     for (int j = 1; j <= 3; ++j) {
-                        if (x_end < 0 || x2 < x_center ? x_end >= x2 - j : x_end >= w - j) { // This bounds check is incorrect but is consistent with the original shader
+                        if (
+                            (x1 < x_center ? x_end < -j : x_end < x1 - j) // This bounds check is incorrect but is consistent with the original shader
+                                || (x2 < x_center ? x_end >= x2 - j : x_end >= w - j) // This bounds check is incorrect but is consistent with the original shader
+                        ) {
                             continue;
                         }
                         uint32_t *pixel = shadowbuffer + (size_t)w * (size_t)i + (size_t)x_end + (size_t)j;
@@ -3155,9 +3164,12 @@ int Bitmap::kglShadowShaderV(int y1, int y2, int x, bool wall, bool soft)
         return 111;
     }
 
-    if (y2 < y1 || w <= 0 || h <= 0) {
+    if (w <= 0 || h <= 0) {
         return 1;
     }
+
+    y1 = clamp(y1, 0, h - 1);
+    y2 = clamp(y2, 0, h - 1);
 
     int x_center = w / 2;
     int y_center = h / 2;
@@ -3181,8 +3193,8 @@ int Bitmap::kglShadowShaderV(int y1, int y2, int x, bool wall, bool soft)
             double y_start_raw = std::round(slope1 * (double)(i - x_center) + (double)y_center);
             double y_end_raw = std::round(slope2 * (double)(i - x_center) + (double)y_center + 0.2f); // The original shader contains a +0.2 adjustment factor for some reason
 
-            int y_start = wall && y1 >= y_center ? y1 : (int)clamp(y_start_raw, 0., (double)h);
-            int y_end = wall && y2 >= y_center ? y2 - 1 : (int)clamp(y_end_raw, -1., y2 < y_center ? (double)y2 - 1. : (double)h - 1.); // This bounds check is incorrect but is consistent with the original shader
+            int y_start = wall && y1 >= y_center ? y1 : (int)clamp(y_start_raw, 0., (double)h + 3.);
+            int y_end = wall && y2 >= y_center ? y2 - 1 : (int)clamp(y_end_raw, -4., y2 < y_center ? (double)y2 - 1. : (double)h - 1.); // This bounds check is incorrect but is consistent with the original shader
 
             if (y_start <= y_end) {
                 for (int j = y_start; j <= y_end; ++j) {
@@ -3193,7 +3205,10 @@ int Bitmap::kglShadowShaderV(int y1, int y2, int x, bool wall, bool soft)
             if (soft) {
                 if (!wall || y1 < y_center) {
                     for (int j = 3; j >= 1; --j) {
-                        if ((y1 < y_center ? y_start <= j : y_start - j < y1) || y_start >= h) { // This bounds check is incorrect but is consistent with the original shader
+                        if (
+                            (y1 < y_center ? y_start - j < 0 : y_start - j < y1) // This bounds check is incorrect but is consistent with the original shader
+                                || (y2 < y_center ? y_start - j >= y2 : y_start - j >= h) // This bounds check is incorrect but is consistent with the original shader
+                        ) {
                             continue;
                         }
                         uint32_t *pixel = shadowbuffer + (size_t)w * ((size_t)y_start - (size_t)j) + (size_t)i;
@@ -3205,7 +3220,10 @@ int Bitmap::kglShadowShaderV(int y1, int y2, int x, bool wall, bool soft)
 
                 if (y2 != y_center && (!wall || y2 < y_center)) {
                     for (int j = 1; j <= 3; ++j) {
-                        if (y_end < 0 || y2 < y_center ? y_end >= y2 - j : y_end >= h - j) { // This bounds check is incorrect but is consistent with the original shader
+                        if (
+                            (y1 < y_center ? y_end < -j : y_end < y1 - j) // This bounds check is incorrect but is consistent with the original shader
+                                || (y2 < y_center ? y_end >= y2 - j : y_end >= h - j) // This bounds check is incorrect but is consistent with the original shader
+                        ) {
                             continue;
                         }
                         uint32_t *pixel = shadowbuffer + (size_t)w * ((size_t)y_end + (size_t)j) + (size_t)i;
