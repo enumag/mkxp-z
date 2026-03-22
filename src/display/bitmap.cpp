@@ -1139,7 +1139,7 @@ void Bitmap::stretchBlt(IntRect destRect,
         smooth = false;
     }
 
-    if (!srcSurf && opacity == 255 && !touchesTaintedArea)
+    if (!srcSurf && !touchesTaintedArea)
     {
         /* Fast blit */
         // TODO: Use bitmapSmoothScaling/bitmapSmoothScalingDown configs for this.
