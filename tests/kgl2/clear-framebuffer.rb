@@ -21,7 +21,7 @@ bitmap.fill_rect(bitmap.rect, Color.new(0xde, 0xad, 0xbe, 0xef))
 bind_status = Win32API.new('System/KGL2.klib', 'kglBindFramebuffer', 'i', 'i').call(bitmap.object_id)
 status = Win32API.new('System/KGL2.klib', 'kglClearFramebuffer', '', 'i').call
 expected_data = "\x00\x00\x00\x00"
-if status == 1 && bitmap.raw_data == String.new(expected_data, encoding: 'ASCII-8BIT')
+if status == 1 && bind_status == 1 && bitmap.raw_data == String.new(expected_data, encoding: 'ASCII-8BIT')
   System.puts 'Test 1 ok'
 else
   System.puts 'Test 1 failed'
