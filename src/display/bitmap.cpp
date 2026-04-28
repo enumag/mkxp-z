@@ -749,7 +749,6 @@ Bitmap::Bitmap(void *pixeldata, int width, int height)
 Bitmap::Bitmap(const Bitmap &other, int frame)
 {
     other.guardDisposed();
-    other.ensureNonMega();
     if (frame > -2) other.ensureAnimated();
     
     if (other.hasHires()) {
@@ -757,9 +756,13 @@ Bitmap::Bitmap(const Bitmap &other, int frame)
     }
 
     p = new BitmapPrivate(this);
-    
+
+    if (other.isMega())
+    {
+        p->megaSurface = SDL_ConvertSurfaceFormat(other.p->megaSurface, p->format->format, 0);
+    }
     // TODO: Clean me up
-    if (!other.isAnimated() || frame >= -1) {
+    else if (!other.isAnimated() || frame >= -1) {
         try {
             p->gl = shState->texPool().request(other.width(), other.height());
         } catch (const Exception &e) {
