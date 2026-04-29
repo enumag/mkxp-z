@@ -36,6 +36,7 @@
 #include "glstate.h"
 #include "quadarray.h"
 
+// TODO: Replace M_PI with std::numbers::pi once we upgrade to C++20.
 #include <math.h>
 #ifndef M_PI
 # define M_PI 3.14159265358979323846
