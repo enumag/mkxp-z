@@ -6,6 +6,7 @@
 #
 # Run the suite via the "customScript" field in mkxp.json.
 # Use RGSS v3 for best results.
+# Set "maxTextureSize": 8192 during testing to force Mega Surface use.
 
 def dump(bmp, spr, desc)
 	# Don't use sprite since that's not covered by this test suite.
