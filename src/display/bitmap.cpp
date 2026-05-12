@@ -1405,22 +1405,25 @@ void Bitmap::stretchBlt(IntRect destRect,
                         }
                         smooth = false;
                     }
-                    else if (mode == NORMAL)
-                    {
-                        SDL_Rect tmpRect = {0, 0, blitTemp->w, blitTemp->h};
-                        error = SDL_LowerBlitScaled(srcSurf, &srcRect, blitTemp, &tmpRect);
-                    }
                     else
                     {
-                        double w_ratio = (double)srcRect.w / (double)destRect.w;
-                        double h_ratio = (double)srcRect.h / (double)destRect.h;
-                        for (size_t r = 0; r < (size_t)blitTemp->h; ++r)
-                            for (size_t c = 0; c < (size_t)blitTemp->w; ++c)
-                            {
-                                uint32_t &dst_pixel = ((uint32_t *)blitTemp->pixels)[(size_t)blitTemp->w * r + c];
-                                uint32_t src_pixel = ((uint32_t *)srcSurf->pixels)[(size_t)srcSurf->w * ((size_t)srcRect.y + (size_t)std::round(h_ratio * r)) + ((size_t)srcRect.x + (size_t)std::round(w_ratio * c))];
-                                bltFilter(mode, dst_pixel, src_pixel, normOpacity);
-                            }
+                        if (mode == NORMAL)
+                        {
+                            SDL_Rect tmpRect = {0, 0, blitTemp->w, blitTemp->h};
+                            error = SDL_LowerBlitScaled(srcSurf, &srcRect, blitTemp, &tmpRect);
+                        }
+                        else
+                        {
+                            double w_ratio = (double)srcRect.w / (double)destRect.w;
+                            double h_ratio = (double)srcRect.h / (double)destRect.h;
+                            for (size_t r = 0; r < (size_t)blitTemp->h; ++r)
+                                for (size_t c = 0; c < (size_t)blitTemp->w; ++c)
+                                {
+                                    uint32_t &dst_pixel = ((uint32_t *)blitTemp->pixels)[(size_t)blitTemp->w * r + c];
+                                    uint32_t src_pixel = ((uint32_t *)srcSurf->pixels)[(size_t)srcSurf->w * ((size_t)srcRect.y + (size_t)std::round(h_ratio * r)) + ((size_t)srcRect.x + (size_t)std::round(w_ratio * c))];
+                                    bltFilter(mode, dst_pixel, src_pixel, normOpacity);
+                                }
+                        }
                     }
                     unpack_subimage = false;
                 }
