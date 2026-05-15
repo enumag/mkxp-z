@@ -774,8 +774,8 @@
 				3B10ECEA2568E83D00372D13 /* transSimple.frag in CopyFiles */,
 				3B10ECEB2568E83D00372D13 /* kglCompressAlpha.frag in CopyFiles */,
 				3B10ECEC2568E83D00372D13 /* kglInvert.frag in CopyFiles */,
-				3B10ECED2568E83D00372D13 /* kglShadowShaderH.frag in CopyFiles */,
-				3B10ECEE2568E83D00372D13 /* kglShadowShaderV.frag in CopyFiles */,
+				3B10ECED2568E83D00372D13 /* kglShadowH.frag in CopyFiles */,
+				3B10ECEE2568E83D00372D13 /* kglShadowV.frag in CopyFiles */,
 				3B10ECEF2568E83D00372D13 /* kglSubtract.frag in CopyFiles */,
 				3F7F41D98CEDE6F418AAB0D2 /* bicubic.frag in CopyFiles */,
 				3D094509A210271690AF48F7 /* xbrz.frag in CopyFiles */,
@@ -894,8 +894,8 @@
 		3B10ECA52568E7B600372D13 /* simpleColor.vert */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = simpleColor.vert; path = ../shader/simpleColor.vert; sourceTree = "<group>"; };
 		3B10ECA62568E7B600372D13 /* kglCompressAlpha.frag */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = kglCompressAlpha.frag; path = ../shader/kglCompressAlpha.frag; sourceTree = "<group>"; };
 		3B10ECA72568E7B600372D13 /* kglInvert.frag */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = kglInvert.frag; path = ../shader/kglInvert.frag; sourceTree = "<group>"; };
-		3B10ECA82568E7B600372D13 /* kglShadowShaderH.frag */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = kglShadowShaderH.frag; path = ../shader/kglShadowShaderH.frag; sourceTree = "<group>"; };
-		3B10ECA92568E7B600372D13 /* kglShadowShaderV.frag */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = kglShadowShaderV.frag; path = ../shader/kglShadowShaderV.frag; sourceTree = "<group>"; };
+		3B10ECA82568E7B600372D13 /* kglShadowH.frag */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = kglShadowH.frag; path = ../shader/kglShadowH.frag; sourceTree = "<group>"; };
+		3B10ECA92568E7B600372D13 /* kglShadowV.frag */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = kglShadowV.frag; path = ../shader/kglShadowV.frag; sourceTree = "<group>"; };
 		3B10ECAA2568E7B600372D13 /* kglSubtract.frag */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = kglSubtract.frag; path = ../shader/kglSubtract.frag; sourceTree = "<group>"; };
 		3B10ED352568E95D00372D13 /* eventthread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = eventthread.cpp; sourceTree = "<group>"; };
 		3B10ED372568E95D00372D13 /* rgssad.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rgssad.h; sourceTree = "<group>"; };
@@ -1414,8 +1414,8 @@
 				3B10EC962568E7B500372D13 /* tilemapvx.vert */,
 				3B10ECA62568E7B600372D13 /* kglCompressAlpha.frag */,
 				3B10ECA72568E7B600372D13 /* kglInvert.frag */,
-				3B10ECA82568E7B600372D13 /* kglShadowShaderH.frag */,
-				3B10ECA92568E7B600372D13 /* kglShadowShaderV.frag */,
+				3B10ECA82568E7B600372D13 /* kglShadowH.frag */,
+				3B10ECA92568E7B600372D13 /* kglShadowV.frag */,
 				3B10ECAA2568E7B600372D13 /* kglSubtract.frag */,
 				CBEA4C45BE737EE0FF5A8A4C /* bicubic.frag */,
 				88734C4B8039751FD0A59FA7 /* xbrz.frag */,
