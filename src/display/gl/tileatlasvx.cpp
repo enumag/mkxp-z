@@ -395,6 +395,10 @@ readAutotileA2(Reader &reader, int patternID,
 		tex[i].y += 0.5f/(float)shState->config().framebufferScalingFactor;
 		tex[i].w -= 1.0f/(float)shState->config().framebufferScalingFactor;
 		tex[i].h -= 1.0f/(float)shState->config().framebufferScalingFactor;
+		if (tex[i].w < 0.0f)
+			tex[i].w = 0.0f;
+		if (tex[i].h < 0.0f)
+			tex[i].h = 0.0f;
 		tex[i].x += orig.x*32;
 		tex[i].y += orig.y*32;
 
