@@ -147,9 +147,9 @@ jobs:
           fi
 
       # Fix mkxp-z issue where CONFIG["prefix"] ends up containing compilation path from GitHub Actions.
-      - name: Fix RbConfig
-        working-directory: build/artifact/stdlib/x64-mingw32
-        run: sed -i 's~TOPDIR || DESTDIR + \".*\"~TOPDIR || DESTDIR + \"\"~g' rbconfig.rb
+#      - name: Fix RbConfig
+#        working-directory: build/artifact/stdlib/x64-mingw32
+#        run: sed -i 's~TOPDIR || DESTDIR + \".*\"~TOPDIR || DESTDIR + \"\"~g' rbconfig.rb
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
