@@ -634,7 +634,7 @@ jobs:
           path: macos
 
       - name: Move files
-        if: contains(github.ref_name, 'test-')
+        if: contains(github.ref_name, 'ucrt-')
         run: |
           mv windows build-windows-game
           mkdir windows
