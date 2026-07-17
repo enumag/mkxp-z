@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
-      - 'test-[0-9]+.[0-9]+.[0-9]+'
+      - 'ucrt-[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   set-matrix:
@@ -15,7 +15,7 @@ jobs:
       - name: Set matrix dynamically
         id: set-matrix
         run: |
-          if [[ "${{ github.ref_name }}" == "test-"* ]]; then
+          if [[ "${{ github.ref_name }}" == "ucrt-"* ]]; then
             matrix='["game"]'
           else
             matrix='["reborn", "rejuvenation", "desolation", "ashenfrost"]'
