@@ -36,7 +36,7 @@ RB_METHOD(disposableDispose)
 	if (!d)
 		return Qnil;
 
-	d->dispose();
+	GFX_GUARD_EXC(d->dispose(););
 
 	return Qnil;
 }
