@@ -830,6 +830,7 @@ struct GraphicsPrivate {
     SDL_mutex *avgFPSLock;
     
     SDL_mutex *glResourceLock;
+    uint64_t glResourceLockLevel;
     bool multithreadedMode;
     
     /* Global list of all live Disposables
@@ -852,6 +853,7 @@ struct GraphicsPrivate {
         avgFPSData = std::vector<double>();
         avgFPSLock = SDL_CreateMutex();
         glResourceLock = SDL_CreateMutex();
+        glResourceLockLevel = 0;
         
         if (integerScaleActive) {
             integerScaleFactor = Vec2i(0, 0);
@@ -1142,12 +1144,18 @@ struct GraphicsPrivate {
         if (!(force || multithreadedMode)) return;
         
         SDL_LockMutex(glResourceLock);
-        SDL_GL_MakeCurrent(threadData->window, threadData->glContext);
+        if (glResourceLockLevel++ == 0) {
+            SDL_GL_MakeCurrent(threadData->window, threadData->glContext);
+        }
     }
     
     void releaseLock(bool force = false) {
         if (!(force || multithreadedMode)) return;
         
+        assert(glResourceLockLevel > 0);
+        if (--glResourceLockLevel == 0) {
+            SDL_GL_MakeCurrent(threadData->window, nullptr);
+        }
         SDL_UnlockMutex(glResourceLock);
     }
 
