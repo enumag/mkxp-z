@@ -388,7 +388,6 @@ static void commandActiveTexture(GLenum texture)
     EXECUTE_COMMAND(ActiveTexture, texture);
 }
 
-
 struct CommandGenerateMipmap
 {
     DECLARE_COMMAND_ID;
@@ -569,7 +568,6 @@ static void commandGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei *len
 {
     EXECUTE_COMMAND(GetShaderInfoLog, shader, bufSize, length, infoLog);
 }
-
 
 struct CommandCreateProgram
 {
