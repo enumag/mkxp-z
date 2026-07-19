@@ -32,9 +32,9 @@
 #include <SDL_opengl.h>
 #endif
 
-#define SDL_GL_SetSwapInterval(__VA_ARGS__) static_assert(false, "please use gl.SetSwapInterval() instead of SDL_GL_SetSwapInterval()")
-#define SDL_GL_GetSwapInterval(__VA_ARGS__) static_assert(false, "please use gl.GetSwapInterval() instead of SDL_GL_GetSwapInterval()")
-#define SDL_GL_SwapWindow(__VA_ARGS__) static_assert(false, "please use gl.SwapWindow() instead of SDL_GL_SwapWindow()")
+#define SDL_GL_SetSwapInterval(...) static_assert(false, "please use gl.SetSwapInterval() instead of SDL_GL_SetSwapInterval()")
+#define SDL_GL_GetSwapInterval(...) static_assert(false, "please use gl.GetSwapInterval() instead of SDL_GL_GetSwapInterval()")
+#define SDL_GL_SwapWindow(...) static_assert(false, "please use gl.SwapWindow() instead of SDL_GL_SwapWindow()")
 
 /* Etc */
 typedef GLenum (APIENTRYP _PFNGLGETERRORPROC) (void);
