@@ -22,6 +22,9 @@
 #ifndef GLFUN_H
 #define GLFUN_H
 
+#include <condition_variable>
+#include <mutex>
+
 #ifdef GLES2_HEADER
 #include <SDL_opengles2.h>
 #define APIENTRYP GL_APIENTRYP
@@ -29,11 +32,16 @@
 #include <SDL_opengl.h>
 #endif
 
+#define SDL_GL_SetSwapInterval(__VA_ARGS__) static_assert(false, "please use gl.SetSwapInterval() instead of SDL_GL_SetSwapInterval()")
+#define SDL_GL_GetSwapInterval(__VA_ARGS__) static_assert(false, "please use gl.GetSwapInterval() instead of SDL_GL_GetSwapInterval()")
+#define SDL_GL_SwapWindow(__VA_ARGS__) static_assert(false, "please use gl.SwapWindow() instead of SDL_GL_SwapWindow()")
+
 /* Etc */
 typedef GLenum (APIENTRYP _PFNGLGETERRORPROC) (void);
 typedef void (APIENTRYP _PFNGLCLEARCOLORPROC) (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 typedef void (APIENTRYP _PFNGLCLEARPROC) (GLbitfield mask);
 typedef const GLubyte * (APIENTRYP _PFNGLGETSTRINGPROC) (GLenum name);
+typedef const GLubyte * (APIENTRYP _PFNGLGETSTRINGIPROC) (GLenum name, GLuint index);
 typedef void (APIENTRYP _PFNGLGETINTEGERVPROC) (GLenum pname, GLint *params);
 typedef void (APIENTRYP _PFNGLPIXELSTOREIPROC) (GLenum pname, GLint param);
 typedef void (APIENTRYP _PFNGLREADPIXELSPROC) (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid *pixels);
@@ -131,6 +139,7 @@ typedef void (APIENTRYP _PFNGLRELEASESHADERCOMPILERPROC) (void);
 	GL_FUN(ClearColor, _PFNGLCLEARCOLORPROC) \
 	GL_FUN(Clear, _PFNGLCLEARPROC) \
 	GL_FUN(GetString, _PFNGLGETSTRINGPROC) \
+	GL_FUN(GetStringi, _PFNGLGETSTRINGIPROC) \
 	GL_FUN(GetIntegerv, _PFNGLGETINTEGERVPROC) \
 	GL_FUN(PixelStorei, _PFNGLPIXELSTOREIPROC) \
 	GL_FUN(ReadPixels, _PFNGLREADPIXELSPROC) \
@@ -215,7 +224,7 @@ typedef void (APIENTRYP _PFNGLRELEASESHADERCOMPILERPROC) (void);
 
 struct GLFunctions
 {
-#define GL_FUN(name, type) type name;
+#define GL_FUN(name, type) type name; type _impl_##name;
 
 	GL_20_FUN
 	GL_ES_FUN
@@ -224,15 +233,32 @@ struct GLFunctions
 	GL_VAO_FUN
 	GL_DEBUG_KHR_FUN
 	GL_GREMEMDY_FUN
+	const char *(*MakeCurrent)(SDL_Window *window, SDL_GLContext context);
+	const char *(*_impl_MakeCurrent)(SDL_Window *window, SDL_GLContext context);
+	int (*SetSwapInterval)(int interval);
+	int (*_impl_SetSwapInterval)(int interval);
+	int (*GetSwapInterval)(void);
+	int (*_impl_GetSwapInterval)(void);
+	void (*SwapWindow)(SDL_Window *window);
+	void (*_impl_SwapWindow)(SDL_Window *window);
 
 	bool glsles;
 	bool unpack_subimage;
 	bool npot_repeat;
+	bool context_release_behavior_none;
+	bool multithreaded;
+
+	SDL_Thread *thread;
+	std::mutex mutex;
+	std::condition_variable cond;
+	size_t commandId;
+	void *command;
 
 #undef GL_FUN
 };
 
 extern GLFunctions gl;
-void initGLFunctions();
+void initGLFunctions(SDL_Window *window, SDL_GLContext context);
+int glThreadFun(void *userdata);
 
 #endif // GLFUN_H
