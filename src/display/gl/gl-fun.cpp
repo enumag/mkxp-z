@@ -24,9 +24,6 @@
 #include "boost-hash.h"
 #include "exception.h"
 
-#include <SDL_video.h>
-#include <condition_variable>
-#include <mutex>
 #include <string>
 #include <utility>
 
