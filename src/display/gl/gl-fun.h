@@ -31,6 +31,8 @@
 #else
 #include <SDL_opengl.h>
 #endif
+#include <SDL_thread.h>
+#include <SDL_video.h>
 
 #define SDL_GL_SetSwapInterval(...) static_assert(false, "please use gl.SetSwapInterval() instead of SDL_GL_SetSwapInterval()")
 #define SDL_GL_GetSwapInterval(...) static_assert(false, "please use gl.GetSwapInterval() instead of SDL_GL_GetSwapInterval()")
