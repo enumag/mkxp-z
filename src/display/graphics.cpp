@@ -831,7 +831,6 @@ struct GraphicsPrivate {
     
     SDL_mutex *glResourceLock;
     uint64_t glResourceLockLevel;
-    bool multithreadedMode;
     
     /* Global list of all live Disposables
      * (disposed on reset) */
@@ -844,7 +843,7 @@ struct GraphicsPrivate {
     scSize(scRes),
     winSize(rtData->config.defScreenW, rtData->config.defScreenH),
     screen(scRes.x, scRes.y), threadData(rtData),
-    glCtx(SDL_GL_GetCurrentContext()), multithreadedMode(true),
+    glCtx(SDL_GL_GetCurrentContext()),
     frameRate(DEF_FRAMERATE), frameCount(0), brightness(255),
     fpsLimiter(frameRate), useFrameSkip(rtData->config.frameSkip), frozen(false),
     last_update(0), last_avg_update(0), backingScaleFactor(1), integerScaleFactor(0, 0),
@@ -1005,7 +1004,7 @@ struct GraphicsPrivate {
     
     void swapGLBuffer() {
         fpsLimiter.delay();
-        SDL_GL_SwapWindow(threadData->window);
+        gl.SwapWindow(threadData->window);
         
         ++frameCount;
         
@@ -1119,12 +1118,7 @@ struct GraphicsPrivate {
         if (!threadData->syncPoint.mainSyncLocked())
             return;
         
-        /* Releasing the GL context before sleeping and making it
-         * current again on wakeup seems to avoid the context loss
-         * when the app moves into the background on Android */
-        SDL_GL_MakeCurrent(threadData->window, 0);
         threadData->syncPoint.waitMainSync();
-        SDL_GL_MakeCurrent(threadData->window, glCtx);
         
         fpsLimiter.resetFrameAdjust();
     }
@@ -1140,20 +1134,16 @@ struct GraphicsPrivate {
         return ret;
     }
     
-    void setLock(bool force = false) {
-        if (!(force || multithreadedMode)) return;
-        
+    void setLock() {
         SDL_LockMutex(glResourceLock);
-        if (glResourceLockLevel++ == 0) {
+        if (glResourceLockLevel++ == 0 && gl.context_release_behavior_none && gl.multithreaded) {
             SDL_GL_MakeCurrent(threadData->window, threadData->glContext);
         }
     }
     
-    void releaseLock(bool force = false) {
-        if (!(force || multithreadedMode)) return;
-        
+    void releaseLock() {
         assert(glResourceLockLevel > 0);
-        if (--glResourceLockLevel == 0) {
+        if (--glResourceLockLevel == 0 && gl.context_release_behavior_none && gl.multithreaded) {
             SDL_GL_MakeCurrent(threadData->window, nullptr);
         }
         SDL_UnlockMutex(glResourceLock);
@@ -1710,12 +1700,21 @@ void Graphics::setLastMileScaling(bool value)
 
 bool Graphics::getThreadsafe() const
 {
-    return p->multithreadedMode;
+    return gl.multithreaded;
 }
 
 void Graphics::setThreadsafe(bool value)
 {
-    p->multithreadedMode = value;
+    if (!gl.context_release_behavior_none && value != gl.multithreaded) {
+        if (value) {
+            SDL_GL_MakeCurrent(p->threadData->window, nullptr);
+            gl.MakeCurrent(p->threadData->window, p->threadData->glContext);
+        } else {
+            SDL_GL_MakeCurrent(p->threadData->window, p->threadData->glContext);
+            gl.MakeCurrent(p->threadData->window, nullptr);
+        }
+    }
+    gl.multithreaded = value;
 }
 
 double Graphics::getScale() const {
@@ -1747,13 +1746,21 @@ void Graphics::repaintWait(const AtomicFlag &exitCond, bool checkReset) {
     if (exitCond)
         return;
     
-    /* Repaint the screen with the last good frame we drew */
-    TEXFBO &lastFrame = p->screen.getPP().frontBuffer();
+    int scaleIsSpecial;
+    GFX_LOCK;
+    try {
+        /* Repaint the screen with the last good frame we drew */
+        TEXFBO &lastFrame = p->screen.getPP().frontBuffer();
 
-    int scaleIsSpecial = GLMeta::blitScaleIsSpecial(p->integerScaleBuffer, false, IntRect(0, 0, p->scSize.x, p->scSize.y), lastFrame, IntRect(0, 0, p->scRes.x, p->scRes.y));
+        scaleIsSpecial = GLMeta::blitScaleIsSpecial(p->integerScaleBuffer, false, IntRect(0, 0, p->scSize.x, p->scSize.y), lastFrame, IntRect(0, 0, p->scRes.x, p->scRes.y));
 
-    GLMeta::blitBeginScreen(p->winSize, scaleIsSpecial);
-    GLMeta::blitSource(lastFrame, scaleIsSpecial);
+        GLMeta::blitBeginScreen(p->winSize, scaleIsSpecial);
+        GLMeta::blitSource(lastFrame, scaleIsSpecial);
+    } catch (...) {
+        GFX_UNLOCK;
+        throw;
+    }
+    GFX_UNLOCK;
     
     while (!exitCond) {
         shState->checkShutdown();
@@ -1761,23 +1768,37 @@ void Graphics::repaintWait(const AtomicFlag &exitCond, bool checkReset) {
         if (checkReset)
             shState->checkReset();
         
-        FBO::clear();
-        p->metaBlitBufferFlippedScaled(scaleIsSpecial);
-        SDL_GL_SwapWindow(p->threadData->window);
+        GFX_LOCK;
+        try {
+            FBO::clear();
+            p->metaBlitBufferFlippedScaled(scaleIsSpecial);
+            gl.SwapWindow(p->threadData->window);
+        } catch (...) {
+            GFX_UNLOCK;
+            throw;
+        }
+        GFX_UNLOCK;
         p->fpsLimiter.delay();
         
         p->threadData->ethread->notifyFrame();
     }
     
-    GLMeta::blitEnd();
+    GFX_LOCK;
+    try {
+        GLMeta::blitEnd();
+    } catch (...) {
+        GFX_UNLOCK;
+        throw;
+    }
+    GFX_UNLOCK;
 }
 
-void Graphics::lock(bool force) {
-    p->setLock(force);
+void Graphics::lock() {
+    p->setLock();
 }
 
-void Graphics::unlock(bool force) {
-    p->releaseLock(force);
+void Graphics::unlock() {
+    p->releaseLock();
 }
 
 void Graphics::addDisposable(Disposable *d) { p->dispList.append(d->link); }
