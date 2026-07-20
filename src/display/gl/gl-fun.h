@@ -34,10 +34,10 @@
 #include <SDL_thread.h>
 #include <SDL_video.h>
 
-#define SDL_GL_GetProcAddress(...) static_assert(false, "please use gl.GetProcAddress() instead of SDL_GL_GetProcAddress()")
-#define SDL_GL_SetSwapInterval(...) static_assert(false, "please use gl.SetSwapInterval() instead of SDL_GL_SetSwapInterval()")
-#define SDL_GL_GetSwapInterval(...) static_assert(false, "please use gl.GetSwapInterval() instead of SDL_GL_GetSwapInterval()")
-#define SDL_GL_SwapWindow(...) static_assert(false, "please use gl.SwapWindow() instead of SDL_GL_SwapWindow()")
+#define SDL_GL_GetProcAddress(...) ([]{static_assert(false, "please use gl.GetProcAddress() instead of SDL_GL_GetProcAddress()"); return (void *)nullptr;})()
+#define SDL_GL_SetSwapInterval(...) ([]{static_assert(false, "please use gl.SetSwapInterval() instead of SDL_GL_SetSwapInterval()"); return (int)-1;})()
+#define SDL_GL_GetSwapInterval(...) ([]{static_assert(false, "please use gl.GetSwapInterval() instead of SDL_GL_GetSwapInterval()"); return (int)0;})()
+#define SDL_GL_SwapWindow(...) ([]{static_assert(false, "please use gl.SwapWindow() instead of SDL_GL_SwapWindow()");})()
 
 /* Etc */
 typedef GLenum (APIENTRYP _PFNGLGETERRORPROC) (void);

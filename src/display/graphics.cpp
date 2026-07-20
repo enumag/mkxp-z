@@ -1710,8 +1710,8 @@ void Graphics::setThreadsafe(bool value)
             SDL_GL_MakeCurrent(p->threadData->window, nullptr);
             gl.MakeCurrent(p->threadData->window, p->threadData->glContext);
         } else {
-            SDL_GL_MakeCurrent(p->threadData->window, p->threadData->glContext);
             gl.MakeCurrent(p->threadData->window, nullptr);
+            SDL_GL_MakeCurrent(p->threadData->window, p->threadData->glContext);
         }
     }
     gl.multithreaded = value;
