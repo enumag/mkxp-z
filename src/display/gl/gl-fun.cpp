@@ -870,6 +870,17 @@ static void commandReleaseShaderCompiler(void)
     EXECUTE_COMMAND(ReleaseShaderCompiler);
 }
 
+struct CommandGetProcAddress
+{
+    DECLARE_COMMAND_ID;
+    const char *proc;
+    void *result;
+};
+static void *commandGetProcAddress(const char *proc)
+{
+    EXECUTE_COMMAND(GetProcAddress, proc);
+}
+
 struct CommandMakeCurrent
 {
     DECLARE_COMMAND_ID;
@@ -914,7 +925,7 @@ static void commandSwapWindow(SDL_Window *window)
 }
 
 #define GL_FUN(name, type) \
-    gl.name = (gl._impl_##name = (type) SDL_GL_GetProcAddress("gl" #name EXT_SUFFIX)) == nullptr ? nullptr : command##name;
+    gl.name = (gl._impl_##name = (type)gl.GetProcAddress("gl" #name EXT_SUFFIX)) == nullptr ? nullptr : command##name;
 
 #define EXC(msg) \
 Exception(Exception::MKXPError, "%s", msg)
@@ -1000,6 +1011,7 @@ int glThreadFun(void *userdata)
         DEF_COMMAND_HANDLER(DeleteVertexArrays, command.n, command.arrays),
         DEF_COMMAND_HANDLER(BindVertexArray, command.array),
         DEF_COMMAND_HANDLER_NO_ARGS(ReleaseShaderCompiler),
+        DEF_COMMAND_HANDLER(GetProcAddress, command.proc),
         DEF_COMMAND_HANDLER(MakeCurrent, command.window, command.context),
         DEF_COMMAND_HANDLER(SetSwapInterval, command.interval),
         DEF_COMMAND_HANDLER_NO_ARGS(GetSwapInterval),
@@ -1020,8 +1032,7 @@ int glThreadFun(void *userdata)
 
 void initGLFunctions(SDL_Window *window, SDL_GLContext context)
 {
-#define EXT_SUFFIX ""
-    GL_20_FUN;
+    gl.GetProcAddress = gl._impl_GetProcAddress = SDL_GL_GetProcAddress;
     gl.MakeCurrent = commandMakeCurrent;
     gl._impl_MakeCurrent = [](SDL_Window *window, SDL_GLContext context) {
         return SDL_GL_MakeCurrent(window, context) < 0 ? SDL_GetError() : nullptr;
@@ -1032,6 +1043,9 @@ void initGLFunctions(SDL_Window *window, SDL_GLContext context)
     gl._impl_GetSwapInterval = SDL_GL_GetSwapInterval;
     gl.SwapWindow = commandSwapWindow;
     gl._impl_SwapWindow = SDL_GL_SwapWindow;
+
+#define EXT_SUFFIX ""
+    GL_20_FUN;
 
     gl.multithreaded = true;
 
@@ -1061,6 +1075,8 @@ void initGLFunctions(SDL_Window *window, SDL_GLContext context)
             }
         }
     }
+
+    gl.GetProcAddress = commandGetProcAddress;
 
     /* Determine GL version */
     const char *ver = (const char*) gl.GetString(GL_VERSION);
