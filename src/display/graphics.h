@@ -95,8 +95,8 @@ public:
 	void repaintWait(const AtomicFlag &exitCond,
 	                 bool checkReset = true);
     
-    void lock();
-    void unlock();
+    void lock(bool force = false);
+    void unlock(bool force = false);
 
 private:
 	Graphics(RGSSThreadData *data);

@@ -70,6 +70,9 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 #ifdef MKXPZ_BUILD_XCODE
 #include <Availability.h>
 #include "TouchBar.h"
+#if !defined(__MAC_10_15) || __MAC_OS_X_VERSION_MAX_ALLOWED < __MAC_10_15
+#define MKXPZ_INIT_GL_LATER
+#endif
 #endif
 
 #ifndef MKXPZ_INIT_GL_LATER
@@ -123,8 +126,7 @@ int rgssThreadFun(void *userdata) {
   if (!threadData->glContext)
     return 0;
 #else
-  if (gl.context_release_behavior_none)
-    SDL_GL_MakeCurrent(threadData->window, threadData->glContext);
+  SDL_GL_MakeCurrent(threadData->window, threadData->glContext);
 #endif
 
   /* Setup AL context */
@@ -455,12 +457,6 @@ int main(int argc, char *argv[]) {
 #endif
 
     /* Start RGSS thread */
-#ifndef MKXPZ_INIT_GL_LATER
-    if (gl.context_release_behavior_none && SDL_GL_MakeCurrent(win, nullptr) < 0) {
-      showInitError(std::string("Could not unbind OpenGL context: ") + SDL_GetError());
-      return 0;
-    }
-#endif
     SDL_Thread *rgssThread = SDL_CreateThread(rgssThreadFun, "rgss", &rtData);
 
     /* Start event processing */
@@ -483,17 +479,9 @@ int main(int argc, char *argv[]) {
 
     /* If RGSS thread ack'd request, wait for it to shutdown,
      * otherwise abandon hope and just end the process as is. */
-    if (rtData.rqTermAck) {
+    if (rtData.rqTermAck)
       SDL_WaitThread(rgssThread, 0);
-      if (gl.thread != nullptr) {
-        {
-          std::lock_guard<std::mutex> guard(gl.mutex);
-          gl.commandId = -1;
-          gl.cond.notify_one();
-        }
-        SDL_WaitThread(gl.thread, 0);
-      }
-    } else
+    else
       SDL_ShowSimpleMessageBox(
           SDL_MESSAGEBOX_ERROR, conf.game.title.c_str(),
           std::string("The RGSS script seems to be stuck. "+conf.game.title+" will now force quit.").c_str(),
@@ -542,9 +530,6 @@ static SDL_GLContext initGL(SDL_Window *win, Config &conf,
   if (conf.debugMode)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 
-  /* If supported by the OpenGL driver, use GL_CONTEXT_RELEASE_BEHAVIOR_NONE to allow calling OpenGL from multiple threads without a proxy thread */
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_RELEASE_BEHAVIOR, SDL_GL_CONTEXT_RELEASE_BEHAVIOR_NONE);
-
   glCtx = SDL_GL_CreateContext(win);
 
   if (!glCtx) {
@@ -553,7 +538,7 @@ static SDL_GLContext initGL(SDL_Window *win, Config &conf,
   }
 
   try {
-    initGLFunctions(win, glCtx);
+    initGLFunctions();
   } catch (const Exception &exc) {
     GLINIT_SHOWERROR(exc.msg);
     SDL_GL_DeleteContext(glCtx);
@@ -566,12 +551,12 @@ static SDL_GLContext initGL(SDL_Window *win, Config &conf,
 
   gl.ClearColor(0, 0, 0, 1);
   gl.Clear(GL_COLOR_BUFFER_BIT);
-  gl.SwapWindow(win);
+  SDL_GL_SwapWindow(win);
 
   printGLInfo();
 
   bool vsync = conf.vsync || conf.syncToRefreshrate;
-  gl.SetSwapInterval(vsync ? 1 : 0);
+  SDL_GL_SetSwapInterval(vsync ? 1 : 0);
 
   // GLDebugLogger dLogger;
   return glCtx;

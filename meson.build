@@ -113,6 +113,8 @@ if get_option('static_executable') == true
     build_static = true
 endif
 
+global_args += '-DMKXPZ_INIT_GL_LATER'
+
 subdir('src')
 subdir('binding')
 subdir('shader')
