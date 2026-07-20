@@ -99,9 +99,9 @@ template <typename Command> struct CommandResult<Command, decltype(std::declval<
     gl.commandId = command.commandId; \
     gl.command = &command; \
     gl.cond.notify_one(); \
-    while (gl.commandId != 0) { \
+    do { \
         gl.cond.wait(guard); \
-    } \
+    } while (gl.commandId != 0); \
     return CommandResult<Command##name>::get(command); \
 } while (0)
 
@@ -1023,9 +1023,9 @@ int glThreadFun(void *userdata)
     gl.commandId = 0;
     gl.cond.notify_one();
     for (;;) {
-        while (gl.commandId == 0) {
+        do {
             gl.cond.wait(guard);
-        }
+        } while (gl.commandId == 0);
         if (gl.commandId > sizeof handlers / sizeof *handlers) {
             return 0;
         }
@@ -1073,9 +1073,9 @@ void initGLFunctions(SDL_Window *window, SDL_GLContext context)
             if ((gl.thread = SDL_CreateThread(glThreadFun, "gl", nullptr)) == nullptr) {
                 throw Exception(Exception::MKXPError, "Could not create OpenGL thread: %s", SDL_GetError());
             }
-            while (gl.commandId != 0) {
+            do {
                 gl.cond.wait(guard);
-            }
+            } while (gl.commandId != 0);
         }
         if (gl.multithreaded) {
             const char *error = gl.MakeCurrent(window, context);
