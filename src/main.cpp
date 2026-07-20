@@ -545,9 +545,15 @@ static SDL_GLContext initGL(SDL_Window *win, Config &conf,
   /* If supported by the OpenGL driver, use GL_CONTEXT_RELEASE_BEHAVIOR to allow calling OpenGL from multiple threads without a proxy thread */
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_RELEASE_BEHAVIOR, SDL_GL_CONTEXT_RELEASE_BEHAVIOR_NONE);
 
-  glCtx = SDL_GL_CreateContext(win);
-
-  if (!glCtx) {
+  if (
+    (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3), SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2), (glCtx = SDL_GL_CreateContext(win))) == nullptr
+      && (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3), SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1), (glCtx = SDL_GL_CreateContext(win))) == nullptr
+      && (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3), SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0), (glCtx = SDL_GL_CreateContext(win))) == nullptr
+#ifndef GLES2_HEADER // Only desktop OpenGL has a version 2.1; OpenGL ES has no version 2.1
+      && (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2), SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1), (glCtx = SDL_GL_CreateContext(win))) == nullptr
+#endif
+      && (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2), SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0), (glCtx = SDL_GL_CreateContext(win))) == nullptr
+  ) {
     GLINIT_SHOWERROR(std::string("Could not create OpenGL context: ") + SDL_GetError());
     return 0;
   }
