@@ -933,13 +933,13 @@ static void commandSwapWindow(SDL_Window *window)
 Exception(Exception::MKXPError, "%s", msg)
 
 #define DEF_COMMAND_HANDLER(name, ...) []() { \
-    static_assert(Command##name::commandId == (size_t)__COUNTER__ - startingCommandHandlerId, "command handlers need to be defined in the same order as the command commands themselves"); \
+    static_assert(Command##name::commandId == (size_t)__COUNTER__ - startingCommandHandlerId, "command handlers need to be defined in the same order as the commands themselves"); \
     Command##name &command = *(Command##name *)gl.command; \
     CommandResult<Command##name>::set(command, gl._impl_##name, __VA_ARGS__); \
 }
 
 #define DEF_COMMAND_HANDLER_NO_ARGS(name) []() { \
-    static_assert(Command##name::commandId == (size_t)__COUNTER__ - startingCommandHandlerId, "command handlers need to be defined in the same order as the command commands themselves"); \
+    static_assert(Command##name::commandId == (size_t)__COUNTER__ - startingCommandHandlerId, "command handlers need to be defined in the same order as the commands themselves"); \
     Command##name &command = *(Command##name *)gl.command; \
     CommandResult<Command##name>::set(command, gl._impl_##name); \
 }
