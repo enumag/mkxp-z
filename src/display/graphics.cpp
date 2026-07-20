@@ -1746,21 +1746,13 @@ void Graphics::repaintWait(const AtomicFlag &exitCond, bool checkReset) {
     if (exitCond)
         return;
     
-    int scaleIsSpecial;
-    GFX_LOCK;
-    try {
-        /* Repaint the screen with the last good frame we drew */
-        TEXFBO &lastFrame = p->screen.getPP().frontBuffer();
+    /* Repaint the screen with the last good frame we drew */
+    TEXFBO &lastFrame = p->screen.getPP().frontBuffer();
 
-        scaleIsSpecial = GLMeta::blitScaleIsSpecial(p->integerScaleBuffer, false, IntRect(0, 0, p->scSize.x, p->scSize.y), lastFrame, IntRect(0, 0, p->scRes.x, p->scRes.y));
+    int scaleIsSpecial = GLMeta::blitScaleIsSpecial(p->integerScaleBuffer, false, IntRect(0, 0, p->scSize.x, p->scSize.y), lastFrame, IntRect(0, 0, p->scRes.x, p->scRes.y));
 
-        GLMeta::blitBeginScreen(p->winSize, scaleIsSpecial);
-        GLMeta::blitSource(lastFrame, scaleIsSpecial);
-    } catch (...) {
-        GFX_UNLOCK;
-        throw;
-    }
-    GFX_UNLOCK;
+    GLMeta::blitBeginScreen(p->winSize, scaleIsSpecial);
+    GLMeta::blitSource(lastFrame, scaleIsSpecial);
     
     while (!exitCond) {
         shState->checkShutdown();
@@ -1768,29 +1760,15 @@ void Graphics::repaintWait(const AtomicFlag &exitCond, bool checkReset) {
         if (checkReset)
             shState->checkReset();
         
-        GFX_LOCK;
-        try {
-            FBO::clear();
-            p->metaBlitBufferFlippedScaled(scaleIsSpecial);
-            gl.SwapWindow(p->threadData->window);
-        } catch (...) {
-            GFX_UNLOCK;
-            throw;
-        }
-        GFX_UNLOCK;
+        FBO::clear();
+        p->metaBlitBufferFlippedScaled(scaleIsSpecial);
+        gl.SwapWindow(p->threadData->window);
         p->fpsLimiter.delay();
         
         p->threadData->ethread->notifyFrame();
     }
     
-    GFX_LOCK;
-    try {
-        GLMeta::blitEnd();
-    } catch (...) {
-        GFX_UNLOCK;
-        throw;
-    }
-    GFX_UNLOCK;
+    GLMeta::blitEnd();
 }
 
 void Graphics::lock() {
