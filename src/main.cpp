@@ -542,7 +542,7 @@ static SDL_GLContext initGL(SDL_Window *win, Config &conf,
   if (conf.debugMode)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 
-  /* If supported by the OpenGL driver, use GL_CONTEXT_RELEASE_BEHAVIOR_NONE to allow calling OpenGL from multiple threads without a proxy thread */
+  /* If supported by the OpenGL driver, use GL_CONTEXT_RELEASE_BEHAVIOR to allow calling OpenGL from multiple threads without a proxy thread */
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_RELEASE_BEHAVIOR, SDL_GL_CONTEXT_RELEASE_BEHAVIOR_NONE);
 
   glCtx = SDL_GL_CreateContext(win);
