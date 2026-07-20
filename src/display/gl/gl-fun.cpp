@@ -70,7 +70,7 @@ template <typename Command, typename = void> struct CommandResult
     static void get(const Command &command) noexcept
     {
     }
-    template <typename Function, typename... Args> static void set(const Command &command, Function function, Args... args) noexcept
+    template <typename Function, typename... Args> static void set(Command &command, Function function, Args... args) noexcept
     {
         function(args...);
     }
