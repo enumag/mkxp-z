@@ -1055,11 +1055,19 @@ void initGLFunctions(SDL_Window *window, SDL_GLContext context)
 
     gl.multithreaded = true;
 
+#ifdef __APPLE__
+    /* ANGLE doesn't support KHR_context_flush_control but doesn't flush the OpenGL pipeline when the context is bound/unbound,
+     * so consider the release behavior to be GL_NONE when using ANGLE on any platform.
+     * Core OpenGL (CGL) also neither supports KHR_context_flush_control nor flushes the pipeline on context binding/unbinding,
+     * so also consider the release behavior to be GL_NONE on Apple platforms when ANGLE is not being used. */
+    gl.context_release_behavior_none = true;
+#else
     {
         GLint context_release_behavior = 0x82fc /* GL_CONTEXT_RELEASE_BEHAVIOR_FLUSH */;
         gl._impl_GetIntegerv(0x82fb /* GL_CONTEXT_RELEASE_BEHAVIOR */, &context_release_behavior);
         gl.context_release_behavior_none = context_release_behavior == GL_NONE;
     }
+#endif
 
     if (gl.context_release_behavior_none) {
         gl.thread = nullptr;
