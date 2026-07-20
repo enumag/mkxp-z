@@ -99,13 +99,15 @@ template <typename Command> struct CommandResult<Command, decltype(std::declval<
     gl.commandId = command.commandId; \
     gl.command = &command; \
     gl.cond.notify_one(); \
-    gl.cond.wait(guard); \
+    while (gl.commandId != 0) { \
+        gl.cond.wait(guard); \
+    } \
     return CommandResult<Command##name>::get(command); \
 } while (0)
 
 static constexpr size_t startingCommandId = __COUNTER__;
 
-#define DECLARE_COMMAND_ID static constexpr size_t commandId = (size_t)__COUNTER__ - (size_t)1 - startingCommandId
+#define DECLARE_COMMAND_ID static constexpr size_t commandId = (size_t)__COUNTER__ - startingCommandId
 
 struct CommandGetError
 {
@@ -931,13 +933,13 @@ static void commandSwapWindow(SDL_Window *window)
 Exception(Exception::MKXPError, "%s", msg)
 
 #define DEF_COMMAND_HANDLER(name, ...) []() { \
-    static_assert(Command##name::commandId == (size_t)__COUNTER__ - (size_t)1 - startingCommandHandlerId, "command handlers need to be defined in the same order as the command commands themselves"); \
+    static_assert(Command##name::commandId == (size_t)__COUNTER__ - startingCommandHandlerId, "command handlers need to be defined in the same order as the command commands themselves"); \
     Command##name &command = *(Command##name *)gl.command; \
     CommandResult<Command##name>::set(command, gl._impl_##name, __VA_ARGS__); \
 }
 
 #define DEF_COMMAND_HANDLER_NO_ARGS(name) []() { \
-    static_assert(Command##name::commandId == (size_t)__COUNTER__ - (size_t)1 - startingCommandHandlerId, "command handlers need to be defined in the same order as the command commands themselves"); \
+    static_assert(Command##name::commandId == (size_t)__COUNTER__ - startingCommandHandlerId, "command handlers need to be defined in the same order as the command commands themselves"); \
     Command##name &command = *(Command##name *)gl.command; \
     CommandResult<Command##name>::set(command, gl._impl_##name); \
 }
@@ -1018,13 +1020,17 @@ int glThreadFun(void *userdata)
         DEF_COMMAND_HANDLER(SwapWindow, command.window),
     };
     std::unique_lock<std::mutex> guard(gl.mutex);
+    gl.commandId = 0;
     gl.cond.notify_one();
     for (;;) {
-        gl.cond.wait(guard);
-        if (gl.commandId >= sizeof handlers / sizeof *handlers) {
+        while (gl.commandId == 0) {
+            gl.cond.wait(guard);
+        }
+        if (gl.commandId > sizeof handlers / sizeof *handlers) {
             return 0;
         }
-        handlers[gl.commandId]();
+        handlers[gl.commandId - 1]();
+        gl.commandId = 0;
         gl.cond.notify_one();
     }
     return 0;
@@ -1063,10 +1069,13 @@ void initGLFunctions(SDL_Window *window, SDL_GLContext context)
         }
         {
             std::unique_lock<std::mutex> guard(gl.mutex);
+            gl.commandId = -1;
             if ((gl.thread = SDL_CreateThread(glThreadFun, "gl", nullptr)) == nullptr) {
                 throw Exception(Exception::MKXPError, "Could not create OpenGL thread: %s", SDL_GetError());
             }
-            gl.cond.wait(guard);
+            while (gl.commandId != 0) {
+                gl.cond.wait(guard);
+            }
         }
         if (gl.multithreaded) {
             const char *error = gl.MakeCurrent(window, context);
