@@ -1036,8 +1036,8 @@ void initGLFunctions(SDL_Window *window, SDL_GLContext context)
     gl.multithreaded = true;
 
     {
-        GLint context_release_behavior = GL_CONTEXT_RELEASE_BEHAVIOR_FLUSH;
-        gl._impl_GetIntegerv(GL_CONTEXT_RELEASE_BEHAVIOR, &context_release_behavior);
+        GLint context_release_behavior = 0x82fc /* GL_CONTEXT_RELEASE_BEHAVIOR_FLUSH */;
+        gl._impl_GetIntegerv(0x82fb /* GL_CONTEXT_RELEASE_BEHAVIOR */, &context_release_behavior);
         gl.context_release_behavior_none = context_release_behavior == GL_NONE;
     }
 
