@@ -565,7 +565,7 @@ static SDL_GLContext initGL(SDL_Window *win, Config &conf,
   }
 
   try {
-    initGLFunctions(win, glCtx);
+    initGLFunctions(conf, win, glCtx);
   } catch (const Exception &exc) {
     GLINIT_SHOWERROR(exc.msg);
     SDL_GL_DeleteContext(glCtx);

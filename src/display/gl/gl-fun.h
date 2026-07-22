@@ -34,6 +34,8 @@
 #include <SDL_thread.h>
 #include <SDL_video.h>
 
+#include "config.h"
+
 #define SDL_GL_GetProcAddress(...) ([]{static_assert(false, "please use gl.GetProcAddress() instead of SDL_GL_GetProcAddress()"); return (void *)nullptr;})()
 #define SDL_GL_SetSwapInterval(...) ([]{static_assert(false, "please use gl.SetSwapInterval() instead of SDL_GL_SetSwapInterval()"); return (int)-1;})()
 #define SDL_GL_GetSwapInterval(...) ([]{static_assert(false, "please use gl.GetSwapInterval() instead of SDL_GL_GetSwapInterval()"); return (int)0;})()
@@ -263,7 +265,7 @@ struct GLFunctions
 };
 
 extern GLFunctions gl;
-void initGLFunctions(SDL_Window *window, SDL_GLContext context);
+void initGLFunctions(const Config &conf, SDL_Window *window, SDL_GLContext context);
 int glThreadFun(void *userdata);
 
 #endif // GLFUN_H
