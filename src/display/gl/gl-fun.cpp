@@ -1024,9 +1024,9 @@ int glThreadFun(void *userdata)
         DEF_COMMAND_HANDLER(SwapWindow, command.window),
     };
     std::unique_lock<std::mutex> guard(gl.mutex);
-    gl.commandId = 0;
-    gl.cond.notify_one();
     for (;;) {
+        gl.commandId = 0;
+        gl.cond.notify_one();
         do {
             gl.cond.wait(guard);
         } while (gl.commandId == 0);
@@ -1034,8 +1034,6 @@ int glThreadFun(void *userdata)
             return 0;
         }
         handlers[gl.commandId - 1]();
-        gl.commandId = 0;
-        gl.cond.notify_one();
     }
     return 0;
 }
