@@ -31,8 +31,8 @@
 #include <SDL_sound.h>
 #include <SDL_ttf.h>
 
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 #include <string>
 #include <unistd.h>
 #include <regex>
@@ -72,11 +72,24 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 #include "TouchBar.h"
 #endif
 
+#if !defined(__ANDROID__) && !defined(__APPLE__) && !defined(_WIN32)
+#  define MKXPZ_CHECK_FOR_WAYLAND_SUPPORT
+#endif
+
+#if defined(MKXPZ_HAVE_ANGLE) && defined(MKXPZ_HAVE_ANGLE_VULKAN)
+#  define MKXPZ_CHECK_FOR_LAVAPIPE
+#  include <volk.h>
+#endif
+
 #ifndef MKXPZ_INIT_GL_LATER
 #define GLINIT_SHOWERROR(s) showInitError(s)
 #else
 #define GLINIT_SHOWERROR(s) rgssThreadError(threadData, s)
 #endif
+
+#ifdef MKXPZ_HAVE_ANGLE
+bool mkxp_use_angle = true;
+#endif // MKXPZ_HAVE_ANGLE
 
 static void rgssThreadError(RGSSThreadData *rtData, const std::string &msg);
 static void showInitError(const std::string &msg);
@@ -193,6 +206,18 @@ static void showInitError(const std::string &msg) {
   SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "mkxp-z", msg.c_str(), 0);
 }
 
+static void mkxp_setenv(const char *key, const char *value) {
+#ifdef _WIN32
+  SetEnvironmentVariableA(key, value);
+#else
+  if (value != nullptr) {
+    setenv(key, value, true);
+  } else {
+    unsetenv(key);
+  }
+#endif
+}
+
 static void setupWindowIcon(const Config &conf, SDL_Window *win) {
   SDL_RWops *iconSrc;
 
@@ -213,6 +238,27 @@ static void setupWindowIcon(const Config &conf, SDL_Window *win) {
   }
 }
 
+static SDL_Window *initVideo(const Config &conf) {
+  Uint32 winFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI;
+
+  if (conf.winResizable)
+    winFlags |= SDL_WINDOW_RESIZABLE;
+  if (conf.fullscreen)
+    winFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+
+  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    return nullptr;
+  }
+
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GetHintBoolean(SDL_HINT_OPENGL_ES_DRIVER, SDL_FALSE) ? SDL_GL_CONTEXT_PROFILE_ES : SDL_GL_CONTEXT_PROFILE_CORE | SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+
+  SDL_Window *window = SDL_CreateWindow(conf.windowTitle.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, conf.defScreenW, conf.defScreenH, winFlags);
+  if (window == nullptr) {
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+  }
+  return window;
+}
+
 int main(int argc, char *argv[]) {
     SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
     SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
@@ -229,9 +275,172 @@ int main(int argc, char *argv[]) {
      * (you can still make SDL use GLX instead when using X11 by setting the SDL_VIDEO_X11_FORCE_EGL environment variable to 0) */
     SDL_SetHint(SDL_HINT_VIDEO_X11_FORCE_EGL, "1");
 
+    /* now we load the config */
+    Config conf;
+    conf.read(argc, argv);
+    if (conf.windowTitle.empty())
+      conf.windowTitle = conf.game.title;
+
     /* initialize SDL first */
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER) < 0) {
+    if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER) < 0) {
       showInitError(std::string("Error initializing SDL: ") + SDL_GetError());
+      return 0;
+    }
+
+    SDL_Window *win = nullptr;
+
+#ifdef MKXPZ_CHECK_FOR_WAYLAND_SUPPORT
+    {
+      const char *sdl_videodriver = SDL_GetHint(SDL_HINT_VIDEODRIVER);
+      if (sdl_videodriver == nullptr || sdl_videodriver[0] == 0) {
+        SDL_SetHintWithPriority(SDL_HINT_VIDEODRIVER, "x11", SDL_HINT_OVERRIDE);
+      }
+
+      /* Prevent ANGLE from using Wayland if we haven't selected SDL's Wayland video driver */
+      sdl_videodriver = SDL_GetHint(SDL_HINT_VIDEODRIVER);
+      assert(sdl_videodriver != nullptr && sdl_videodriver[0] != 0); /* Should already have been explicitly set by the Wayland check above */
+      if (
+        (sdl_videodriver[0] != 'W' && sdl_videodriver[0] != 'w')
+          || (sdl_videodriver[1] != 'A' && sdl_videodriver[1] != 'a')
+          || (sdl_videodriver[2] != 'Y' && sdl_videodriver[2] != 'y')
+          || (sdl_videodriver[3] != 'L' && sdl_videodriver[3] != 'l')
+          || (sdl_videodriver[4] != 'A' && sdl_videodriver[4] != 'a')
+          || (sdl_videodriver[5] != 'N' && sdl_videodriver[5] != 'n')
+          || (sdl_videodriver[6] != 'D' && sdl_videodriver[6] != 'd')
+          || sdl_videodriver[7] != 0
+      ) {
+        mkxp_setenv("WAYLAND_DISPLAY", nullptr);
+      }
+    }
+#endif // MKXPZ_CHECK_FOR_WAYLAND_SUPPORT
+
+#ifdef MKXPZ_HAVE_ANGLE
+    bool angle_allow_fallback = false;
+    {
+      const char *angle_default_platform = getenv("ANGLE_DEFAULT_PLATFORM");
+      switch (conf.renderer) {
+        default:
+          angle_allow_fallback = true;
+          if (angle_default_platform == nullptr || angle_default_platform[0] == 0) {
+#  ifdef MKXPZ_HAVE_ANGLE_METAL
+            mkxp_setenv("ANGLE_DEFAULT_PLATFORM", "metal");
+#  elif !defined(MKXPZ_HAVE_ANGLE_DIRECT3D9) && !defined(MKXPZ_HAVE_ANGLE_DIRECT3D11)
+#    ifdef MKXPZ_HAVE_ANGLE_VULKAN
+#      ifdef MKXPZ_CHECK_FOR_LAVAPIPE
+            /* Check if ANGLE's Vulkan backend would use LLVMpipe. If so, use OpenGL instead. */
+            mkxp_setenv("ANGLE_DEFAULT_PLATFORM", "gl");
+            VkResult result = volkInitialize();
+            VkInstance instance;
+            uint32_t physicalDeviceCount;
+            std::vector<VkPhysicalDevice> physicalDevices;
+            if (result == VK_SUCCESS) {
+              static const VkApplicationInfo applicationInfo {
+                /*sType=*/VK_STRUCTURE_TYPE_APPLICATION_INFO,
+                /*pNext=*/nullptr,
+                /*pApplicationName=*/"",
+                /*applicationVersion=*/0,
+                /*pEngineName=*/"",
+                /*engineVersion=*/0,
+                /*apiVersion=*/VK_API_VERSION_1_0,
+              };
+              static const VkInstanceCreateInfo instanceCreateInfo {
+                /*sType=*/VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+                /*pNext=*/nullptr,
+                /*flags=*/0,
+                /*pApplicationInfo=*/&applicationInfo,
+                /*enabledLayerCount=*/0,
+                /*ppEnabledLayerNames=*/nullptr,
+                /*enabledExtensionCount=*/0,
+                /*ppEnabledExtensionNames=*/nullptr,
+              };
+              result = vkCreateInstance(&instanceCreateInfo, nullptr, &instance);
+            }
+            if (result == VK_SUCCESS) {
+              volkLoadInstance(instance);
+              result = vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, nullptr);
+              if (result == VK_SUCCESS) {
+                physicalDevices.resize(physicalDeviceCount);
+                result = vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDevices.data());
+              }
+              if (result == VK_SUCCESS && !physicalDevices.empty()) {
+                VkPhysicalDeviceProperties physicalDeviceProperties;
+                VkPhysicalDevice preferredPhysicalDevice = physicalDevices[0];
+                const char *anglePreferredDevice = getenv("ANGLE_PREFERRED_DEVICE");
+                if (anglePreferredDevice == nullptr) {
+                  anglePreferredDevice = "";
+                }
+                for (VkPhysicalDevice physicalDevice : physicalDevices) {
+                  vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
+                  if (std::strcmp(physicalDeviceProperties.deviceName, anglePreferredDevice) == 0) {
+                    preferredPhysicalDevice = physicalDevice;
+                    break;
+                  }
+                }
+                vkGetPhysicalDeviceProperties(preferredPhysicalDevice, &physicalDeviceProperties);
+                if (std::strncmp(physicalDeviceProperties.deviceName, "llvmpipe ", sizeof "llvmpipe " - 1) != 0) {
+                  mkxp_setenv("ANGLE_DEFAULT_PLATFORM", "vulkan");
+                }
+              }
+              vkDestroyInstance(instance, nullptr);
+            }
+#      else
+            mkxp_setenv("ANGLE_DEFAULT_PLATFORM", "vulkan");
+#      endif // MKXPZ_CHECK_FOR_LAVAPIPE
+#    else
+            mkxp_setenv("ANGLE_DEFAULT_PLATFORM", "gl");
+#    endif // MKXPZ_HAVE_ANGLE_VULKAN
+#  endif
+          }
+          break;
+#ifdef MKXPZ_HAVE_ANGLE_NULL
+        case 1:
+          mkxp_setenv("ANGLE_DEFAULT_PLATFORM", "null");
+          break;
+#endif // MKXPZ_HAVE_ANGLE_NULL
+        case 2:
+          mkxp_setenv("ANGLE_DEFAULT_PLATFORM", "gl");
+          break;
+#ifdef MKXPZ_HAVE_ANGLE_VULKAN
+        case 3:
+          mkxp_setenv("ANGLE_DEFAULT_PLATFORM", "vulkan");
+          break;
+#endif // MKXPZ_HAVE_ANGLE_VULKAN
+#ifdef MKXPZ_HAVE_ANGLE_METAL
+        case 4:
+          mkxp_setenv("ANGLE_DEFAULT_PLATFORM", "metal");
+          break;
+#elif defined(MKXPZ_HAVE_ANGLE_DIRECT3D9) || defined(MKXPZ_HAVE_ANGLE_DIRECT3D11)
+        case 4:
+          mkxp_setenv("ANGLE_DEFAULT_PLATFORM", nullptr);
+          break;
+#elif defined(MKXPZ_HAVE_ANGLE_VULKAN)
+        case 4:
+          mkxp_setenv("ANGLE_DEFAULT_PLATFORM", "vulkan");
+          break;
+#endif // MKXPZ_HAVE_ANGLE_METAL
+      }
+      angle_default_platform = getenv("ANGLE_DEFAULT_PLATFORM");
+      if (angle_default_platform != nullptr && std::strcmp(angle_default_platform, "gl") == 0) {
+        mkxp_use_angle = false;
+      }
+    }
+
+    if (mkxp_use_angle) {
+      bool sdl_hint_opengl_es_driver = SDL_GetHintBoolean(SDL_HINT_OPENGL_ES_DRIVER, SDL_FALSE);
+      bool sdl_hint_video_x11_force_egl = SDL_GetHintBoolean(SDL_HINT_VIDEO_X11_FORCE_EGL, SDL_FALSE);
+      SDL_SetHintWithPriority(SDL_HINT_OPENGL_ES_DRIVER, "1", SDL_HINT_OVERRIDE);
+      SDL_SetHintWithPriority(SDL_HINT_VIDEO_X11_FORCE_EGL, "1", SDL_HINT_OVERRIDE);
+      if (angle_allow_fallback && (win = initVideo(conf)) == nullptr) {
+        // Try again without ANGLE
+        mkxp_use_angle = false;
+        SDL_SetHintWithPriority(SDL_HINT_OPENGL_ES_DRIVER, sdl_hint_opengl_es_driver ? "1" : "0", SDL_HINT_OVERRIDE);
+        SDL_SetHintWithPriority(SDL_HINT_VIDEO_X11_FORCE_EGL, sdl_hint_video_x11_force_egl ? "1" : "0", SDL_HINT_OVERRIDE);
+      }
+    }
+#endif // MKXPZ_HAVE_ANGLE
+
+    if (win == nullptr && (win = initVideo(conf)) == nullptr) {
+      showInitError(std::string("Error creating window: ") + SDL_GetError());
       return 0;
     }
 
@@ -255,10 +464,6 @@ int main(int argc, char *argv[]) {
     mkxp_fs::setCurrentDirectory(dataDir);
 #endif
     
-    /* now we load the config */
-    Config conf;
-    conf.read(argc, argv);
-
 #if defined(__WIN32__)
     // Create a debug console in debug mode
     if (conf.winConsole) {
@@ -337,40 +542,6 @@ int main(int argc, char *argv[]) {
           std::string(buf)); // Not an error worth ending the program over
     }
 #endif
-
-    SDL_Window *win;
-    Uint32 winFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI;
-
-    if (conf.winResizable)
-      winFlags |= SDL_WINDOW_RESIZABLE;
-    if (conf.fullscreen)
-      winFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-    
-#ifdef GLES2_HEADER
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-
-    // LoadLibrary properly initializes EGL, it won't work otherwise.
-    // Doesn't completely do it though, needs a small patch to SDL
-#ifdef MKXPZ_BUILD_XCODE
-    SDL_setenv("ANGLE_DEFAULT_PLATFORM", (conf.preferMetalRenderer) ? "metal" : "opengl", true);
-    SDL_GL_LoadLibrary("@rpath/libEGL.dylib");
-#endif
-#endif
-    
-    win = SDL_CreateWindow(conf.windowTitle.c_str(), SDL_WINDOWPOS_UNDEFINED,
-                           SDL_WINDOWPOS_UNDEFINED, conf.defScreenW,
-                           conf.defScreenH, winFlags);
-
-    if (!win) {
-      showInitError(std::string("Error creating window: ") + SDL_GetError());
-
-#ifdef MKXPZ_STEAM
-      STEAMSHIM_deinit();
-#endif
-      return 0;
-    }
     
 #ifdef MKXPZ_BUILD_XCODE
     {

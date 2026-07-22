@@ -160,6 +160,7 @@ void Config::read(int argc, char *argv[]) {
 #else
         {"preferMetalRenderer", false},
 #endif
+        {"renderer", 0},
         {"subImageFix", false},
 #ifdef __WIN32__
         {"enableBlitting", false},
@@ -305,6 +306,7 @@ try { exp } catch (...) {}
 #ifdef __APPLE__
     SET_OPT(preferMetalRenderer, boolean);
 #endif
+    SET_OPT(renderer, integer);
     SET_OPT(subImageFix, boolean);
     SET_OPT(enableBlitting, boolean);
     SET_OPT_CUSTOMKEY(integerScaling.active, integerScalingActive, boolean);

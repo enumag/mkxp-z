@@ -52,6 +52,160 @@ if get_option('enable-https') == true
     endif
 endif
 
+cmake_base_options = {
+    'CMAKE_POLICY_VERSION_MINIMUM': '3.10',
+    'CMAKE_OSX_SYSROOT': '/nonexistent',
+    'CMAKE_C_STANDARD': c_std.replace('c', '').replace('gnu', ''),
+    'CMAKE_CXX_STANDARD': cpp_std.replace('c++', '').replace('gnu++', ''),
+    'CMAKE_C_BYTE_ORDER': host_endian == 'big' ? 'BIG_ENDIAN' : 'LITTLE_ENDIAN',
+    'CMAKE_CXX_BYTE_ORDER': host_endian == 'big' ? 'BIG_ENDIAN' : 'LITTLE_ENDIAN',
+    'CMAKE_OBJC_BYTE_ORDER': host_endian == 'big' ? 'BIG_ENDIAN' : 'LITTLE_ENDIAN',
+    'CMAKE_OBJCXX_BYTE_ORDER': host_endian == 'big' ? 'BIG_ENDIAN' : 'LITTLE_ENDIAN',
+    'CMAKE_POSITION_INDEPENDENT_CODE': use_pic,
+    'CMAKE_BUILD_TYPE': 'Custom',
+    'CMAKE_RC_COMPILER': host_system in ['windows', 'cygwin'] ? run_command(quotetool_command, find_program('windres'), check: true).stdout().strip() : '',
+    'CMAKE_EXE_LINKER_FLAGS': common.get_variable('c_linker_flag'),
+}
+
+meson_base_options = {
+    'default_library': 'static',
+    'b_staticpic': use_pic,
+    'c_std': c_std,
+    'cpp_std': cpp_std,
+}
+
+if true
+    have_angle = get_option('angle').allowed()
+
+    if have_angle
+        require_system_xxhash = get_option('xxhash_system').disable_auto_if(default_system_disabled).enable_auto_if(default_system_enabled)
+        xxhash = dependency('libxxhash', allow_fallback: false, required: get_option('angle').auto() and require_system_xxhash.enabled() ? get_option('angle') : require_system_xxhash)
+        if not xxhash.found()
+            if not get_option('xxhash_system').enabled()
+                subproject('xxhash', default_options: meson_base_options)
+            else
+                have_angle = false
+            endif
+        endif
+    endif
+
+    spirv_headers_source_dir = subproject('spirv-headers', default_options: meson_base_options).get_variable('spirv_headers_source_dir')
+
+    if have_angle
+        have_angle_vulkan = get_option('angle_vulkan').allowed()
+        require_system_spirv_tools = get_option('spirv_tools_system').disable_auto_if(default_system_disabled).enable_auto_if(default_system_enabled)
+        spirv_tools = dependency('SPIRV-Tools', allow_fallback: false, required: get_option('angle').auto() and require_system_spirv_tools.enabled() ? get_option('angle') : require_system_spirv_tools)
+        if not spirv_tools.found()
+            if not require_system_spirv_tools.enabled()
+                spirv_tools_options = cmake.subproject_options()
+                spirv_tools_options.add_cmake_defines(cmake_base_options + {
+                    'CMAKE_CXX_STANDARD': 17,
+                    'CMAKE_C_FLAGS': run_command(quotetool_args, '-I' + spirv_headers_source_dir / 'include', check: true).stdout().strip(),
+                    'CMAKE_CXX_FLAGS': run_command(quotetool_args, '-I' + spirv_headers_source_dir / 'include', check: true).stdout().strip(),
+                    'SPIRV-Headers_SOURCE_DIR': spirv_headers_source_dir,
+                    'BUILD_SHARED_LIBS': false,
+                    'BUILD_TESTING': false,
+                    'SKIP_SPIRV_TOOLS_INSTALL': true,
+                    'SPIRV-TOOLS_USE_MIMALLOC': false,
+                })
+                meson.override_dependency('SPIRV-Tools', cmake.subproject('spirv-tools', options: spirv_tools_options).dependency('SPIRV-Tools-static'), static: true)
+            else
+                if get_option('angle_vulkan').enabled()
+                    error('SPIRV-Tools is required for ANGLE Vulkan backend')
+                endif
+                have_angle = false
+                have_angle_vulkan = false
+            endif
+        endif
+    endif
+
+    if have_angle and have_angle_vulkan
+        require_system_volk = get_option('volk_system').disable_auto_if(default_system_disabled).enable_auto_if(default_system_enabled)
+        volk = dependency('volk', allow_fallback: false, required: get_option('angle').auto() and require_system_spirv_tools.enabled() ? get_option('angle') : require_system_spirv_tools)
+        if not volk.found()
+            if not require_system_volk.enabled()
+                global_dependencies += subproject('volk', default_options: meson_base_options).get_variable('volk')
+            else
+                if get_option('angle_vulkan').enabled()
+                    error('volk is required for ANGLE Vulkan backend')
+                endif
+                have_angle = false
+                have_angle_vulkan = false
+            endif
+        else
+            global_dependencies += volk
+        endif
+    endif
+
+    if have_angle
+        if get_option('angle_direct3d9').disabled()
+            angle_direct3d9 = 'disabled'
+        elif get_option('angle_direct3d9').enabled()
+            angle_direct3d9 = 'enabled'
+        else
+            angle_direct3d9 = 'auto'
+        endif
+        if get_option('angle_direct3d11').disabled()
+            angle_direct3d11 = 'disabled'
+        elif get_option('angle_direct3d11').enabled()
+            angle_direct3d11 = 'enabled'
+        else
+            angle_direct3d11 = 'auto'
+        endif
+        if get_option('angle_metal').disabled()
+            angle_metal = 'disabled'
+        elif get_option('angle_metal').enabled()
+            angle_metal = 'enabled'
+        else
+            angle_metal = 'auto'
+        endif
+        if get_option('angle_null').disabled()
+            angle_null = 'disabled'
+        elif get_option('angle_null').enabled()
+            angle_null = 'enabled'
+        else
+            angle_null = 'auto'
+        endif
+        if get_option('angle_vulkan').disabled()
+            angle_vulkan = 'disabled'
+        elif get_option('angle_vulkan').enabled()
+            angle_vulkan = 'enabled'
+        else
+            angle_vulkan = 'auto'
+        endif
+        angle = subproject('angle', default_options: meson_base_options + {
+            'direct3d9': angle_direct3d9,
+            'direct3d11': angle_direct3d11,
+            'metal': angle_metal,
+            'null': angle_null,
+            'opengl': 'disabled',
+            'vulkan': have_angle_vulkan ? angle_vulkan : 'disabled',
+        })
+        have_angle_direct3d9 = angle.get_variable('have_direct3d9')
+        have_angle_direct3d11 = angle.get_variable('have_direct3d11')
+        have_angle_metal = angle.get_variable('have_metal')
+        have_angle_null = angle.get_variable('have_null')
+        have_angle_vulkan = angle.get_variable('have_vulkan')
+        global_args += '-DMKXPZ_HAVE_ANGLE'
+        if have_angle_direct3d9
+            global_args += '-DMKXPZ_HAVE_ANGLE_DIRECT3D9'
+        endif
+        if have_angle_direct3d11
+            global_args += '-DMKXPZ_HAVE_ANGLE_DIRECT3D11'
+        endif
+        if have_angle_metal
+            global_args += '-DMKXPZ_HAVE_ANGLE_METAL'
+        endif
+        if have_angle_null
+            global_args += '-DMKXPZ_HAVE_ANGLE_NULL'
+        endif
+        if have_angle_vulkan
+            gplv3_features += 'ANGLE Vulkan backend'
+            global_args += '-DMKXPZ_HAVE_ANGLE_VULKAN'
+        endif
+    endif
+endif
+
 # Windows needs to be treated like a special needs child here
 explicit_libs = ''
 if host_system == 'windows'
@@ -96,7 +250,7 @@ global_include_dirs += include_directories('.',
     'util', 'util/sigslot', 'util/sigslot/adapter'
 )
 
-global_dependencies += [openal, zlib, bz2, sdl2, sdl_sound, pixman, physfs, theora, vorbisfile, vorbis, ogg, sdl2_ttf, freetype, sdl2_image, png, iconv, uchardet]
+global_dependencies += [openal, zlib, bz2, sdl2, sdl_sound, pixman, physfs, theora, vorbisfile, vorbis, ogg, sdl2_ttf, freetype, sdl2_image, png, iconv, uchardet, angle.get_variable('angle_dep')]
 if host_system == 'windows'
     global_dependencies += compilers['cpp'].find_library('wsock32')
 endif

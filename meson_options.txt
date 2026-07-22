@@ -21,3 +21,16 @@ option('steam_appid', type: 'string', value: '', description: 'Steam AppID. Set 
 option('steamshim_debug', type: 'boolean', value: false, description: 'Whether to show Steamshim debug messages in the console')
 
 option('gfx_backend', type: 'combo', value: 'gl', choices: ['gl', 'gles'], description: 'Graphics rendering API to use.')
+
+option('angle', type: 'feature', value: 'auto', description: 'Enable support for using ANGLE to convert OpenGL calls to Direct3D, Metal or Vulkan')
+option('angle_direct3d9', type: 'feature', value: 'auto', description: 'Enable ANGLE\'s Direct3D 9 backend')
+option('angle_direct3d11', type: 'feature', value: 'auto', description: 'Enable ANGLE\'s Direct3D 11 backend')
+option('angle_metal', type: 'feature', value: 'auto', description: 'Enable ANGLE\'s Metal backend')
+option('angle_null', type: 'feature', value: 'auto', description: 'Enable ANGLE\'s null backend')
+option('angle_vulkan', type: 'feature', value: 'auto', description: 'Enable ANGLE\'s Vulkan backend')
+
+option('default_system', type: 'feature', value: 'disabled', description: 'If this is set to \'enabled\', the system versions of dependencies will be used by default; if this is set to \'disabled\', the vendored versions of dependencies will be used by default; if this is set to \'auto\', by default the system versions of dependencies that exist will be used and the vendored versions will be used otherwise; the dependency resolution behavior of individual dependencies can be overridden by explicitly setting the corresponding options to \'enabled\' or \'disabled\'')
+
+option('spirv_tools_system', type: 'feature', value: 'auto', description: 'Use the system version of SPIR-V Tools instead of the vendored version')
+option('volk_system', type: 'feature', value: 'auto', description: 'Use the system version of volk instead of the vendored version')
+option('xxhash_system', type: 'feature', value: 'auto', description: 'Use the system version of xxHash instead of the vendored version')
