@@ -74,11 +74,6 @@ meson_base_options = {
     'cpp_std': cpp_std,
 }
 
-# This will not be required once PR #342 is merged
-if build_static != get_option('prefer_static')
-    meson.override_dependency('zlib', zlib, static: get_option('prefer_static'))
-endif
-
 if true
     have_angle = get_option('angle').allowed()
 
