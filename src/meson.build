@@ -10,7 +10,7 @@ sdl2_ttf = dependency('SDL2_ttf', static: build_static)
 freetype = dependency('freetype2', static: build_static)
 pixman = dependency('pixman-1', static: build_static)
 png = dependency('libpng', static: build_static)
-zlib = dependency('zlib', static: build_static)
+zlib = dependency('zlib')
 uchardet = dependency('uchardet', static: build_static)
 
 # As no pkg-config file is generated for static sdl2_image, and pkg-config is
