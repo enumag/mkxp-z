@@ -170,6 +170,7 @@ void Config::read(int argc, char *argv[]) {
 #else
         {"preferMetalRenderer", false},
 #endif
+        {"renderer", 0},
         {"subImageFix", false},
 #ifdef __WIN32__
         {"enableBlitting", false},
@@ -178,6 +179,7 @@ void Config::read(int argc, char *argv[]) {
 #endif
         {"integerScalingActive", false},
         {"integerScalingLastMile", true},
+        {"multithreadedGl", 0},
         {"maxTextureSize", 0},
         {"gameFolder", ""},
         {"anyAltToggleFS", false},
@@ -320,10 +322,12 @@ try { exp } catch (...) {}
 #ifdef __APPLE__
     SET_OPT(preferMetalRenderer, boolean);
 #endif
+    SET_OPT(renderer, integer);
     SET_OPT(subImageFix, boolean);
     SET_OPT(enableBlitting, boolean);
     SET_OPT_CUSTOMKEY(integerScaling.active, integerScalingActive, boolean);
     SET_OPT_CUSTOMKEY(integerScaling.lastMileScaling, integerScalingLastMile, boolean);
+    SET_OPT(multithreadedGl, integer);
     SET_OPT(maxTextureSize, integer);
     SET_OPT(anyAltToggleFS, boolean);
     SET_OPT(enableReset, boolean);

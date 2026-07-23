@@ -1,4 +1,4 @@
-project('mkxp-z', 'c', 'cpp', version: '2.4.2', meson_version: '>=0.56.0', default_options: ['cpp_std=c++14', 'buildtype=release'])
+project('mkxp-z', 'c', 'cpp', version: '2.4.2', meson_version: '>=1.4.0', default_options: ['cpp_std=c++14', 'buildtype=release'])
 
 host_system = host_machine.system()
 
@@ -10,6 +10,16 @@ xxd = find_program('xxd', native: true)
 
 git_hash = run_command('git', 'rev-parse', '--short', 'HEAD').stdout().strip()
 
+gplv3_features = []
+
+host_system = host_machine.system()
+host_endian = host_machine.endian()
+
+use_pic = true
+
+default_system_disabled = get_option('default_system').disabled()
+default_system_enabled = get_option('default_system').enabled()
+
 compilers = {'cpp': meson.get_compiler('cpp')}
 
 global_sources = []
@@ -17,6 +27,16 @@ global_dependencies = []
 global_include_dirs = []
 global_args = []
 global_link_args = []
+c_std = 'gnu11'
+cpp_std = 'gnu++14'
+
+common = subproject('common', default_options: {'c_std': c_std, 'cpp_std': cpp_std})
+cmake = import('cmake')
+python = common.get_variable('python')
+embedtool = common.get_variable('embedtool')
+quotetool_args = common.get_variable('quotetool_args')
+quotetool_command = common.get_variable('quotetool_command')
+sonametool = common.get_variable('sonametool')
 
 sizeof = {'void*': compilers['cpp'].sizeof('void*'),
           'long': compilers['cpp'].sizeof('long')

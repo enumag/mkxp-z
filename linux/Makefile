@@ -197,7 +197,7 @@ $(LIBDIR)/libSDL2.a: $(DOWNLOADS)/sdl2/cmakebuild/Makefile
 $(DOWNLOADS)/sdl2/cmakebuild/Makefile: $(DOWNLOADS)/sdl2/CMakeLists.txt $(LIBDIR)/libdbus-1.so.3.38.3
 	cd $(DOWNLOADS)/sdl2; \
 	mkdir cmakebuild; cd cmakebuild; \
-	$(CMAKE) -DBUILD_SHARED_LIBS=no -DSDL_DBUS=yes
+	$(CMAKE) -DCMAKE_C_FLAGS="$(CFLAGS) -DSDL_VIDEO_STATIC_ANGLE -DKHRONOS_STATIC" -DBUILD_SHARED_LIBS=no -DSDL_DBUS=yes
 
 $(DOWNLOADS)/sdl2/CMakeLists.txt:
 	$(CLONE) $(GITHUB)/mkxp-z/SDL $(DOWNLOADS)/sdl2 -b mkxp-z-2.28.1
@@ -227,6 +227,7 @@ $(LIBDIR)/libSDL2_image.a: $(DOWNLOADS)/sdl2_image/cmakebuild/Makefile
 $(DOWNLOADS)/sdl2_image/cmakebuild/Makefile: $(DOWNLOADS)/sdl2_image/CMakeLists.txt
 	cd $(DOWNLOADS)/sdl2_image; mkdir -p cmakebuild; cd cmakebuild; \
 	$(CMAKE) \
+	-DSDL2IMAGE_SAMPLES=no \
 	-DBUILD_SHARED_LIBS=no \
 	-DSDL2IMAGE_JPG_SAVE=yes \
 	-DSDL2IMAGE_PNG_SAVE=yes \

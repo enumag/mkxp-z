@@ -36,6 +36,7 @@ struct Config {
     
     bool debugMode;
     bool winConsole;
+    int renderer;
     bool preferMetalRenderer;
     bool displayFPS;
     bool printFPS;
@@ -76,6 +77,8 @@ struct Config {
         bool active;
         bool lastMileScaling;
     } integerScaling;
+    
+    int multithreadedGl;
     
     std::string gameFolder;
     bool manualFolderSelect;
