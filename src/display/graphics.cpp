@@ -881,6 +881,9 @@ struct GraphicsPrivate {
     
     ~GraphicsPrivate() {
         GFX_LOCK;
+        for (IntruListLink<Disposable> *iter = dispList.begin(); iter != dispList.end(); iter = iter->next) {
+            iter->data->dispose();
+        }
         dispList.clear();
         TEXFBO::fini(frozenScene);
         TEXFBO::fini(integerScaleBuffer);
@@ -1051,7 +1054,7 @@ struct GraphicsPrivate {
                               !forceNearestNeighbor && GLMeta::smoothScalingMethod(scaleIsSpecial) == Bilinear);
     }
     
-    void redrawScreen() {
+    void redrawScreen(bool incrementFrameCount = true) {
         screen.composite();
         
         // maybe unspaghetti this later
@@ -1066,8 +1069,15 @@ struct GraphicsPrivate {
             metaBlitBufferFlippedScaled(scRes, scaleIsSpecial, true);
             GLMeta::blitEnd();
             
-            swapGLBuffer();
-            updateAvgFPS();
+            if (incrementFrameCount)
+            {
+                swapGLBuffer();
+                updateAvgFPS();
+            }
+            else
+            {
+                gl.SwapWindow(threadData->window);
+            }
             return;
         }
         
@@ -1117,9 +1127,15 @@ struct GraphicsPrivate {
         
         GLMeta::blitEnd();
         
-        swapGLBuffer();
-        
-        updateAvgFPS();
+        if (incrementFrameCount)
+        {
+            swapGLBuffer();
+            updateAvgFPS();
+        }
+        else
+        {
+            gl.SwapWindow(threadData->window);
+        }
     }
     
     void checkSyncLock() {
@@ -1543,10 +1559,11 @@ void Graphics::resizeWindow(int width, int height, bool center) {
 }
 
 void Graphics::onSizeChanged() {
-    // We need to repaint the screen after resizing when using ANGLE's Direct3D 11 backend.
+    // We need to repaint the screen after resizing when using ANGLE's Direct3D 11 backend, twice (probably because of double buffering).
     GFX_LOCK;
     p->checkResize();
-    p->redrawScreen();
+    p->redrawScreen(false);
+    p->redrawScreen(false);
     GFX_UNLOCK;
 }
 
