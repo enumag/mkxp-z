@@ -61,15 +61,17 @@ cmake_base_options = {
     'CMAKE_CXX_BYTE_ORDER': host_endian == 'big' ? 'BIG_ENDIAN' : 'LITTLE_ENDIAN',
     'CMAKE_OBJC_BYTE_ORDER': host_endian == 'big' ? 'BIG_ENDIAN' : 'LITTLE_ENDIAN',
     'CMAKE_OBJCXX_BYTE_ORDER': host_endian == 'big' ? 'BIG_ENDIAN' : 'LITTLE_ENDIAN',
-    'CMAKE_POSITION_INDEPENDENT_CODE': use_pic,
     'CMAKE_BUILD_TYPE': 'Custom',
     'CMAKE_RC_COMPILER': host_system in ['windows', 'cygwin'] ? run_command(quotetool_command, find_program('windres'), check: true).stdout().strip() : '',
     'CMAKE_EXE_LINKER_FLAGS': common.get_variable('c_linker_flag'),
 }
 
-meson_base_options = {
+cmake_override_options = {
+    'b_coverage': 'false',
+}
+
+meson_base_options = cmake_override_options + {
     'default_library': 'static',
-    'b_staticpic': use_pic,
     'c_std': c_std,
     'cpp_std': cpp_std,
 }
@@ -108,6 +110,9 @@ if true
                     'SKIP_SPIRV_TOOLS_INSTALL': true,
                     'SPIRV-TOOLS_USE_MIMALLOC': false,
                 })
+                foreach opt, val : cmake_override_options
+                    spirv_tools_options.set_override_option(opt, val)
+                endforeach
                 meson.override_dependency('SPIRV-Tools', cmake.subproject('spirv-tools', options: spirv_tools_options).dependency('SPIRV-Tools-static'), static: true)
             else
                 if get_option('angle_vulkan').enabled()
@@ -138,13 +143,6 @@ if true
     endif
 
     if have_angle
-        if get_option('angle_direct3d9').disabled()
-            angle_direct3d9 = 'disabled'
-        elif get_option('angle_direct3d9').enabled()
-            angle_direct3d9 = 'enabled'
-        else
-            angle_direct3d9 = 'auto'
-        endif
         if get_option('angle_direct3d11').disabled()
             angle_direct3d11 = 'disabled'
         elif get_option('angle_direct3d11').enabled()
@@ -174,22 +172,17 @@ if true
             angle_vulkan = 'auto'
         endif
         angle = subproject('angle', default_options: meson_base_options + {
-            'direct3d9': angle_direct3d9,
             'direct3d11': angle_direct3d11,
             'metal': angle_metal,
             'null': angle_null,
             'opengl': 'disabled',
             'vulkan': have_angle_vulkan ? angle_vulkan : 'disabled',
         })
-        have_angle_direct3d9 = angle.get_variable('have_direct3d9')
         have_angle_direct3d11 = angle.get_variable('have_direct3d11')
         have_angle_metal = angle.get_variable('have_metal')
         have_angle_null = angle.get_variable('have_null')
         have_angle_vulkan = angle.get_variable('have_vulkan')
         global_args += '-DMKXPZ_HAVE_ANGLE'
-        if have_angle_direct3d9
-            global_args += '-DMKXPZ_HAVE_ANGLE_DIRECT3D9'
-        endif
         if have_angle_direct3d11
             global_args += '-DMKXPZ_HAVE_ANGLE_DIRECT3D11'
         endif
