@@ -18,7 +18,7 @@ jobs:
           if [[ "${{ github.ref_name }}" == "test-"* ]]; then
             matrix='["game"]'
           else
-            matrix='["reborn", "rejuvenation", "desolation", "ashenfrost"]'
+            matrix='["reborn", "rejuvenation", "desolation"]'
           fi
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
