@@ -313,6 +313,22 @@ RB_METHOD(inputRawKeyStates) {
     return ret;
 }
 
+RB_METHOD(getKeycodes) {
+    RB_UNUSED_PARAM;
+
+    VALUE ret = rb_ary_new();
+
+    VALUE button;
+    rb_scan_args(argc, argv, "1", &button);
+
+    std::vector<std::string> keys = shState->input().getBindings(button);
+
+    for (std::string key : keys)
+        rb_ary_push(ret, key)
+
+    return ret;
+}
+
 #define M_SYMBOL(x) ID2SYM(rb_intern(x))
 #define POWERCASE(v, c)                                                        \
 case SDL_JOYSTICK_POWER_##c:                                                 \
@@ -607,6 +623,7 @@ void inputBindingInit() {
     _rb_define_module_function(module, "mouse_in_window?", inputMouseInWindow);
     
     _rb_define_module_function(module, "raw_key_states", inputRawKeyStates);
+    _rb_define_module_function(module, "getKeycodes", getKeycodes);
     
     VALUE submod = rb_define_module_under(module, "Controller");
     _rb_define_module_function(submod, "connected?", inputControllerConnected);
