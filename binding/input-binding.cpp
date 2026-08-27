@@ -320,8 +320,10 @@ RB_METHOD(getKeycodes) {
 
     VALUE button;
     rb_scan_args(argc, argv, "1", &button);
+    
+    int num = getButtonArg(&button);
 
-    std::vector<std::string> keys = shState->input().getBindings(button);
+    std::vector<std::string> keys = shState->input().getBindings(num);
 
     for (std::string key : keys)
         rb_ary_push(ret, key)
