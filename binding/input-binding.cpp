@@ -326,7 +326,7 @@ RB_METHOD(getKeycodes) {
     std::vector<std::string> keys = shState->input().getBindings(static_cast<Input::ButtonCode>(num));
 
     for (std::string key : keys)
-        rb_ary_push(ret, rb_utf8_str_new_cstr(key))
+        rb_ary_push(ret, rb_utf8_str_new_cstr(key.c_str()));
 
     return ret;
 }
