@@ -323,10 +323,10 @@ RB_METHOD(getKeycodes) {
     
     int num = getButtonArg(&button);
 
-    std::vector<std::string> keys = shState->input().getBindings(num);
+    std::vector<std::string> keys = shState->input().getBindings(static_cast<Input::ButtonCode>(num));
 
     for (std::string key : keys)
-        rb_ary_push(ret, key)
+        rb_ary_push(ret, rb_utf8_str_new_cstr(key))
 
     return ret;
 }
