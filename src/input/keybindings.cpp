@@ -162,10 +162,12 @@ BDescVec genDefaultBindings(const Config &conf)
 	for (size_t i = 0; i < defaultCtrlBindingsN; ++i)
 		defaultCtrlBindings[i].add(d);
 
-	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTX, Negative, Input::Left );
-	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTX, Positive, Input::Right);
-	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTY, Negative, Input::Up   );
-	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTY, Positive, Input::Down );
+	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTX,        Negative, Input::Left );
+	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTX,        Positive, Input::Right);
+	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTY,        Negative, Input::Up   );
+	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTY,        Positive, Input::Down );
+	addAxisBinding(d, SDL_CONTROLLER_AXIS_TRIGGERLEFT,  Positive, Input::D    );
+	addAxisBinding(d, SDL_CONTROLLER_AXIS_TRIGGERRIGHT, Positive, Input::D    );
 
 	return d;
 }
