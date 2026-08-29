@@ -363,6 +363,10 @@ try { exp } catch (...) {}
     auto &bnames = opts["bindingNames"].as_object();
     
 #define BINDING_NAME(btn) kbActionNames.btn = bnames[#btn].as_string()
+    BINDING_NAME(up);
+    BINDING_NAME(down);
+    BINDING_NAME(left);
+    BINDING_NAME(right);
     BINDING_NAME(a);
     BINDING_NAME(b);
     BINDING_NAME(c);

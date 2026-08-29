@@ -288,6 +288,10 @@ s.d.ca.dir = (axis.value >= 0) ? AxisDir::Positive : AxisDir::Negative;
 #define SET_BINDING_CONF(code, value) \
 if (!data.config.kbActionNames.value.empty()) bindingNames[@(Input::code)] = \
     @(data.config.kbActionNames.value.c_str())
+    SET_BINDING_CONF(Down, down);
+    SET_BINDING_CONF(Left, left);
+    SET_BINDING_CONF(Right, right);
+    SET_BINDING_CONF(Up, up);
     SET_BINDING_CONF(A,a);
     SET_BINDING_CONF(B,b);
     SET_BINDING_CONF(C,c);
