@@ -75,10 +75,10 @@ static const KbBindingData defaultKbBindings[] =
 	{ SDL_SCANCODE_C,        Input::C   },
 	{ SDL_SCANCODE_RETURN,   Input::C   },
 	{ SDL_SCANCODE_SPACE,    Input::C   },
+	{ SDL_SCANCODE_X,        Input::B   },
 	{ SDL_SCANCODE_ESCAPE,   Input::B   },
 	{ SDL_SCANCODE_KP_0,     Input::B   },
 	{ SDL_SCANCODE_Z,        Input::A   },
-	{ SDL_SCANCODE_X,        Input::B   },
 	{ SDL_SCANCODE_D,        Input::Z   },
 	{ SDL_SCANCODE_Q,        Input::L   },
 	{ SDL_SCANCODE_PAGEUP,   Input::L   },
@@ -88,8 +88,8 @@ static const KbBindingData defaultKbBindings[] =
 	{ SDL_SCANCODE_S,        Input::Y   },
 	{ SDL_SCANCODE_LSHIFT,   Input::D   },
 	{ SDL_SCANCODE_RSHIFT,   Input::D   },
-	{ SDL_SCANCODE_TAB,      Input::E   },
 	{ SDL_SCANCODE_M,        Input::E   },
+	{ SDL_SCANCODE_TAB,      Input::E   },
 	{ SDL_SCANCODE_F7,       Input::F   },
 };
 
@@ -162,10 +162,12 @@ BDescVec genDefaultBindings(const Config &conf)
 	for (size_t i = 0; i < defaultCtrlBindingsN; ++i)
 		defaultCtrlBindings[i].add(d);
 
-	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTX, Negative, Input::Left );
-	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTX, Positive, Input::Right);
-	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTY, Negative, Input::Up   );
-	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTY, Positive, Input::Down );
+	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTX,        Negative, Input::Left );
+	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTX,        Positive, Input::Right);
+	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTY,        Negative, Input::Up   );
+	addAxisBinding(d, SDL_CONTROLLER_AXIS_LEFTY,        Positive, Input::Down );
+	//addAxisBinding(d, SDL_CONTROLLER_AXIS_TRIGGERLEFT,  Positive, Input::E    );
+	addAxisBinding(d, SDL_CONTROLLER_AXIS_TRIGGERRIGHT, Positive, Input::D    );
 
 	return d;
 }
