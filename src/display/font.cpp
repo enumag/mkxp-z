@@ -714,17 +714,6 @@ static bool pickExistingFontName(const std::vector<std::string> &names,
 			out = names[i];
 			return true;
 		}
-		else
-		{
-			if (i == 0)
-			{
-				Debug() << "Primary font not found:" << names[i];
-			}
-			else
-			{
-				Debug() << "Fallback font not found:" << names[i];
-			}
-		}
 	}
 
 	if (out[0] == '\0')
