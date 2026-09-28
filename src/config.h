@@ -37,7 +37,6 @@ struct Config {
     bool debugMode;
     bool winConsole;
     int renderer;
-    bool preferMetalRenderer;
     bool displayFPS;
     bool printFPS;
     
@@ -50,7 +49,7 @@ struct Config {
     int bitmapSmoothScalingDown;
     bool smoothScalingMipmaps;
     int bicubicSharpness;
-#ifdef MKXPZ_SSL
+#ifdef MKXPZ_HAVE_EXTRA_SHADERS
     double xbrzScalingFactor;
 #endif
     bool enableHires;
@@ -168,7 +167,7 @@ struct Config {
         std::string d;
         std::string e;
         std::string f;
-        
+
         std::string x;
         std::string y;
         std::string z;
