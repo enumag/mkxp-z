@@ -169,7 +169,6 @@ jobs:
           cp icons/${{ matrix.game }}.png assets/icon.png
 
       - name: Restore from cache
-        if: false
         uses: actions/cache/restore@v6
         with:
           path: ccache
@@ -199,7 +198,6 @@ jobs:
           date -u +time=%Y-%m-%dT%H:%M:%SZ >> "$GITHUB_OUTPUT"
 
       - name: Save to cache
-        if: false
         uses: actions/cache/save@v6
         with:
           path: ccache
