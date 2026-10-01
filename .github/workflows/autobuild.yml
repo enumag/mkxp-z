@@ -141,15 +141,12 @@ jobs:
           archive: false
 
   build-windows-msys2:
-    if: false
     name: Windows MSYS2
     runs-on: windows-latest
+    needs: set-matrix
+    strategy:
+      matrix: ${{ fromJson(needs.set-matrix.outputs.macos_universal) }}
     steps:
-      - uses: benjlevesque/short-sha@v4.0
-        id: short-sha
-        with:
-          length: 7
-
       - name: Install dependencies
         uses: msys2/setup-msys2@v2
         with:
@@ -160,6 +157,16 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v7
+
+      - name: Name
+        id: name
+        run: echo name=$(echo ${{ matrix.game }} | perl -pe 's/^(.)/\U$1/') >> $env:GITHUB_OUTPUT
+
+      - name: Icon
+        if: "matrix.game != 'game'"
+        run: |
+          cp icons/${{ matrix.game }}.ico windows/icon.ico
+          cp icons/${{ matrix.game }}.png assets/icon.png
 
       - name: Restore from cache
         if: false
@@ -242,10 +249,22 @@ jobs:
             exit 1
           fi
 
+      - name: Rename
+        run: mv build/artifact/mkxp-z.x86_64.exe build/artifact/${{ steps.name.outputs.name }}.exe
+
+      - name: Disable specifications
+        working-directory: build/artifact/stdlib
+        run: sed -i "s~Gem::Specification\.load_defaults~#Gem::Specification\.load_defaults~g" rubygems.rb
+
+      # Fix mkxp-z issue where CONFIG["prefix"] ends up containing compilation path from GitHub Actions.
+      - name: Fix RbConfig
+        working-directory: build/artifact/stdlib/x64-mingw64
+        run: sed -i 's~TOPDIR || DESTDIR + \".*\"~TOPDIR || DESTDIR + \"\"~g' rbconfig.rb
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: mkxp-z.windows.msys2.x86_64.${{github.event_name == 'pull_request' && format('PR{0}', github.event.number) || github.ref_name}}-${{steps.short-sha.outputs.sha}}
+          name: ${{ github.job }}-${{ matrix.game }}
           path: build/artifact
 
   build-windows-cross:
