@@ -2,14 +2,48 @@ name: Automatic Build
 
 on:
   push:
-    branches: ['dev', 'autobuild']
-    paths-ignore: ['*.md', '*.json', '*.png']
-  pull_request:
-    branches: ['dev', 'autobuild']
-    paths-ignore: ['*.md', '*.json', '*.png']
+    branches:
+      - '*'
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - 'test-*'
   workflow_dispatch:
 
 jobs:
+  set-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      windows: ${{ steps.set-matrix.outputs.windows }}
+      linux: ${{ steps.set-matrix.outputs.linux }}
+      macos: ${{ steps.set-matrix.outputs.macos }}
+      macos_universal: ${{ steps.set-matrix.outputs.macos_universal }}
+    steps:
+      - name: Set matrix dynamically
+        id: set-matrix
+        run: |
+          if [[ "${{ github.ref_name }}" == "test-"* ]]; then
+            games='["game"]'
+          else
+            games='["reborn", "rejuvenation", "desolation"]'
+          fi
+
+          windows=$(jq --compact-output --null-input --argjson games "$games" \
+            '{ include: [ $games[] | { game: ., cache: true, arch_mkxpz: "x86_64", clang: false } ] }')
+
+          linux=$(jq --compact-output --null-input --argjson games "$games" \
+            '{ include: [ $games[] | { game: ., cache: true, arch_mkxpz: "x86_64", arch_debian: "amd64", "cpu-family": "x86_64", cpu: "x86_64", endian: "little", distro: "ubuntu", suite: "xenial" } ] }')
+
+          macos=$(jq --compact-output --null-input --argjson games "$games" \
+            '{ include: [ $games[] | { game: ., cache: true, arch_mkxpz: "arm64" }, { game: ., cache: true, arch_mkxpz: "x86_64" } ] }')
+          
+          macos_universal=$(jq --compact-output --null-input --argjson games "$games" \
+            '{ include: [ $games[] | { game: . } ] }')
+
+          echo "windows=$windows" >> $GITHUB_OUTPUT
+          echo "linux=$linux" >> $GITHUB_OUTPUT
+          echo "macos=$macos" >> $GITHUB_OUTPUT
+          echo "macos_universal=$macos_universal" >> $GITHUB_OUTPUT
+
   verify-ruby-configure-scripts:
     name: Verify Ruby ${{ matrix.version }} configure scripts
     runs-on: ubuntu-latest
@@ -51,6 +85,7 @@ jobs:
           EOF
 
   build-source-tarball:
+    if: false
     name: ${{ matrix.job-name }}
     runs-on: ubuntu-latest
     strategy:
@@ -106,6 +141,7 @@ jobs:
           archive: false
 
   build-windows-msys2:
+    if: false
     name: Windows MSYS2
     runs-on: windows-latest
     steps:
@@ -215,25 +251,10 @@ jobs:
   build-windows-cross:
     name: Windows ${{ matrix.arch_mkxpz }}
     runs-on: ubuntu-latest
+    needs: set-matrix
     strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch_mkxpz: arm64
-            clang: true
-            cache: true
-          - arch_mkxpz: i686
-            clang: true
-            cache: false
-          - arch_mkxpz: x86_64
-            clang: false
-            cache: true
+      matrix: ${{ fromJson(needs.set-matrix.outputs.windows) }}
     steps:
-      - uses: benjlevesque/short-sha@v4.0
-        id: short-sha
-        with:
-          length: 7
-
       - name: Install dependencies
         run: |
           sudo apt update
@@ -259,6 +280,16 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v7
+
+      - name: Name
+        id: name
+        run: echo name=$(echo ${{ matrix.game }} | perl -pe 's/^(.)/\U$1/') >> $env:GITHUB_OUTPUT
+
+      - name: Icon
+        if: "matrix.game != 'game'"
+        run: |
+          cp icons/${{ matrix.game }}.ico windows/icon.ico
+          cp icons/${{ matrix.game }}.png assets/icon.png
 
       - name: Restore from cache
         if: ${{ matrix.cache }}
@@ -312,113 +343,31 @@ jobs:
         run: |
           meson install -C build --no-rebuild --tags mkxp-z
 
+      - name: Rename
+        run: mv build/artifact/mkxp-z.${{ matrix.arch_mkxpz }}.exe build/artifact/${{ steps.name.outputs.name }}.exe
+
+      - name: Disable specifications
+        working-directory: build/artifact/stdlib
+        run: sed -i "s~Gem::Specification\.load_defaults~#Gem::Specification\.load_defaults~g" rubygems.rb
+
+      # Fix mkxp-z issue where CONFIG["prefix"] ends up containing compilation path from GitHub Actions.
+      - name: Fix RbConfig
+        working-directory: build/artifact/stdlib/x64-mingw64
+        run: sed -i 's~TOPDIR || DESTDIR + \".*\"~TOPDIR || DESTDIR + \"\"~g' rbconfig.rb
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: mkxp-z.windows.cross.${{matrix.arch_mkxpz}}.${{github.event_name == 'pull_request' && format('PR{0}', github.event.number) || github.ref_name}}-${{steps.short-sha.outputs.sha}}
+          name: ${{ github.job }}-${{ matrix.game }}
           path: build/artifact
 
   build-linux-gnu:
     name: ${{ matrix.distro }} ${{ matrix.suite }} ${{ matrix.arch_mkxpz }}
     runs-on: ubuntu-26.04
+    needs: set-matrix
     strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch_mkxpz: armv6
-            arch_debian: armhf
-            cpu-family: arm
-            cpu: armv6zk
-            endian: little
-            distro: raspbian
-            suite: bullseye
-            cache: false
-          - arch_mkxpz: armv7
-            arch_debian: armhf
-            cpu-family: arm
-            cpu: armv7
-            endian: little
-            distro: ubuntu
-            suite: xenial
-            cache: false
-          - arch_mkxpz: armv7-neon
-            arch_debian: armhf
-            cpu-family: arm
-            cpu: armv7
-            endian: little
-            distro: ubuntu
-            suite: xenial
-            cache: false
-          - arch_mkxpz: arm64
-            arch_debian: arm64
-            cpu-family: aarch64
-            cpu: aarch64
-            endian: little
-            distro: ubuntu
-            suite: xenial
-            cache: true
-          - arch_mkxpz: i386
-            arch_debian: i386
-            cpu-family: x86
-            cpu: i386
-            endian: little
-            distro: ubuntu
-            suite: xenial
-            cache: false
-          - arch_mkxpz: powerpc
-            arch_debian: powerpc
-            cpu-family: ppc
-            cpu: powerpc
-            endian: big
-            distro: debian
-            suite: sid
-            cache: false
-          - arch_mkxpz: ppc64
-            arch_debian: ppc64
-            cpu-family: ppc64
-            cpu: powerpc64
-            endian: big
-            distro: debian
-            suite: sid
-            cache: false
-          - arch_mkxpz: power8le
-            arch_debian: ppc64el
-            cpu-family: ppc64
-            cpu: powerpc64le
-            endian: little
-            distro: ubuntu
-            suite: xenial
-            cache: false
-          - arch_mkxpz: riscv64
-            arch_debian: riscv64
-            cpu-family: riscv64
-            cpu: riscv64
-            endian: little
-            distro: ubuntu
-            suite: jammy
-            cache: false
-          - arch_mkxpz: s390x
-            arch_debian: s390x
-            cpu-family: s390x
-            cpu: s390x
-            endian: big
-            distro: ubuntu
-            suite: xenial
-            cache: false
-          - arch_mkxpz: x86_64
-            arch_debian: amd64
-            cpu-family: x86_64
-            cpu: x86_64
-            endian: little
-            distro: ubuntu
-            suite: xenial
-            cache: true
+      matrix: ${{ fromJson(needs.set-matrix.outputs.linux) }}
     steps:
-      - uses: benjlevesque/short-sha@v4.0
-        id: short-sha
-        with:
-          length: 7
-
       - name: Install dependencies
         run: |
           sudo apt update
@@ -436,6 +385,16 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v7
+
+      - name: Name
+        id: name
+        run: echo name=$(echo ${{ matrix.game }} | sed 's/^\(.\)/\U\1/') >> $GITHUB_OUTPUT
+
+      - name: Icon
+        if: "matrix.game != 'game'"
+        run: |
+          cp icons/${{ matrix.game }}.png linux/mkxp-z.png
+          cp icons/${{ matrix.game }}.png assets/icon.png
 
       - name: Set up sysroot
         run: |
@@ -579,13 +538,26 @@ jobs:
         run: |
           meson install -C build --no-rebuild --tags mkxp-z
 
+      - name: Rename
+        run: mv build/artifact/mkxp-z.${{ matrix.arch_mkxpz }} build/artifact/${{ steps.name.outputs.name }}
+
+      - name: Disable specifications
+        working-directory: build/artifact/stdlib
+        run: sed -i "s~Gem::Specification\.load_defaults~#Gem::Specification\.load_defaults~g" rubygems.rb
+
+      # Fix mkxp-z issue where CONFIG["prefix"] ends up containing compilation path from GitHub Actions.
+      - name: Fix RbConfig
+        working-directory: build/artifact/stdlib/x86_64-linux
+        run: sed -i 's~TOPDIR || DESTDIR + \".*\"~TOPDIR || DESTDIR + \"\"~g' rbconfig.rb
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: mkxp-z.linux.${{ matrix.distro }}.${{ matrix.suite }}.${{matrix.arch_mkxpz}}.${{github.event_name == 'pull_request' && format('PR{0}', github.event.number) || github.ref_name}}-${{steps.short-sha.outputs.sha}}
+          name: ${{ github.job }}-${{ matrix.game }}
           path: build/artifact
 
   build-linux-native-container:
+    if: false
     name: Debian Trixie x86_64
     runs-on: ubuntu-latest
     container: debian:trixie
@@ -660,6 +632,7 @@ jobs:
           path: build/artifact
 
   build-linux-cross-container:
+    if: false
     name: Debian Trixie ${{matrix.arch_mkxpz}}
     runs-on: ubuntu-latest
     container: debian:trixie
@@ -770,6 +743,7 @@ jobs:
           path: build/artifact
 
   build-freebsd:
+    if: false
     name: FreeBSD ${{ matrix.arch }}
     runs-on: ubuntu-26.04
     strategy:
@@ -991,26 +965,22 @@ jobs:
   build-macos:
     name: macOS ${{ matrix.arch_mkxpz }}
     runs-on: macos-latest
+    needs: set-matrix
     strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch_mkxpz: arm64
-            cache: true
-          - arch_mkxpz: x86_64
-            cache: true
+      matrix: ${{ fromJson(needs.set-matrix.outputs.macos) }}
     steps:
-      - uses: benjlevesque/short-sha@v4.0
-        id: short-sha
-        with:
-          length: 7
-
       - name: Install dependencies
         run: |
           brew install -q bison ccache cmake diffutils git make meson ruby
 
       - name: Checkout repository
         uses: actions/checkout@v7
+
+      - name: Icon
+        if: "matrix.game != 'game'"
+        run: |
+          cp icons/${{ matrix.game }}.icns macos/icon.icns
+          cp icons/${{ matrix.game }}.png assets/icon.png
 
       - name: Restore from cache
         if: ${{ matrix.cache }}
@@ -1060,50 +1030,53 @@ jobs:
           mv build/artifact build/artifact-bundle
           meson install -C build --no-rebuild --tags mkxp-z
 
-      - name: Upload standalone artifact
+      - name: Upload bundle artifact
         uses: actions/upload-artifact@v7
         with:
-          name: mkxp-z.macos.${{ matrix.arch_mkxpz }}.standalone.${{github.event_name == 'pull_request' && format('PR{0}', github.event.number) || github.ref_name}}-${{steps.short-sha.outputs.sha}}
+          name: macos.${{ matrix.game }}.${{ matrix.arch_mkxpz }}.standalone
           path: build/artifact
 
       - name: Upload bundle artifact
         uses: actions/upload-artifact@v7
         with:
-          name: mkxp-z.macos.${{ matrix.arch_mkxpz }}.app.${{github.event_name == 'pull_request' && format('PR{0}', github.event.number) || github.ref_name}}-${{steps.short-sha.outputs.sha}}
+          name: macos.${{ matrix.game }}.${{ matrix.arch_mkxpz }}.bundle
           path: build/artifact-bundle
 
   build-macos-universal:
     name: macOS universal
     runs-on: macos-latest
-    needs: build-macos
+    needs:
+      - set-matrix
+      - build-macos
+    strategy:
+      matrix: ${{ fromJson(needs.set-matrix.outputs.macos_universal) }}
     steps:
-      - uses: benjlevesque/short-sha@v4.0
-        id: short-sha
-        with:
-          length: 7
+      - name: Name
+        id: name
+        run: echo name=$(echo ${{ matrix.game }} | perl -pe '$_ = ucfirst($_)') >> $GITHUB_OUTPUT
 
       - name: Download arm64 standalone artifact
         uses: actions/download-artifact@v8
         with:
-          name: mkxp-z.macos.arm64.standalone.${{github.event_name == 'pull_request' && format('PR{0}', github.event.number) || github.ref_name}}-${{steps.short-sha.outputs.sha}}
+          name: macos.${{ matrix.game }}.arm64.standalone
           path: artifact-arm64
 
       - name: Download arm64 bundle artifact
         uses: actions/download-artifact@v8
         with:
-          name: mkxp-z.macos.arm64.app.${{github.event_name == 'pull_request' && format('PR{0}', github.event.number) || github.ref_name}}-${{steps.short-sha.outputs.sha}}
+          name: macos.${{ matrix.game }}.arm64.bundle
           path: artifact-bundle-arm64
 
       - name: Download x86_64 standalone artifact
         uses: actions/download-artifact@v8
         with:
-          name: mkxp-z.macos.x86_64.standalone.${{github.event_name == 'pull_request' && format('PR{0}', github.event.number) || github.ref_name}}-${{steps.short-sha.outputs.sha}}
+          name: macos.${{ matrix.game }}.x86_64.standalone
           path: artifact-x86_64
 
       - name: Download x86_64 bundle artifact
         uses: actions/download-artifact@v8
         with:
-          name: mkxp-z.macos.x86_64.app.${{github.event_name == 'pull_request' && format('PR{0}', github.event.number) || github.ref_name}}-${{steps.short-sha.outputs.sha}}
+          name: macos.${{ matrix.game }}.x86_64.bundle
           path: artifact-bundle-x86_64
 
       - name: Build
@@ -1121,14 +1094,105 @@ jobs:
           mv artifact-bundle-x86_64 artifact-bundle
           mv bundle_mkxp-z artifact-bundle/mkxp-z.universal.app/Contents/MacOS/
 
-      - name: Upload standalone artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: mkxp-z.macos.universal.standalone.${{github.event_name == 'pull_request' && format('PR{0}', github.event.number) || github.ref_name}}-${{steps.short-sha.outputs.sha}}
-          path: artifact
+      - name: Disable specifications
+        working-directory: artifact-bundle/stdlib
+        run: sed -i '' "s~Gem::Specification\.load_defaults~#Gem::Specification\.load_defaults~g" rubygems.rb
+
+      # Fix mkxp-z issue where CONFIG["prefix"] ends up containing compilation path from GitHub Actions.
+      - name: Fix RbConfig
+        working-directory: artifact-bundle/stdlib/x86_64-darwin
+        run: sed -i '' 's~TOPDIR || DESTDIR + \".*\"~TOPDIR || DESTDIR + \"\"~g' rbconfig.rb
+
+      - name: Compress app
+        working-directory: artifact-bundle
+        run: |
+          mkdir mkxp-z.universal.app/Contents/Resources/Ruby
+          mv stdlib mkxp-z.universal.app/Contents/Resources/Ruby/3.1.0
+          mv mkxp-z.universal.app ${{ steps.name.outputs.name }}.app
+          ditto -c -k --sequesterRsrc --keepParent ${{ steps.name.outputs.name }}.app ${{ matrix.game }}.app.zip
 
       - name: Upload bundle artifact
         uses: actions/upload-artifact@v7
         with:
-          name: mkxp-z.macos.universal.app.${{github.event_name == 'pull_request' && format('PR{0}', github.event.number) || github.ref_name}}-${{steps.short-sha.outputs.sha}}
-          path: artifact-bundle
+          name: ${{ github.job }}-${{ matrix.game }}
+          path: artifact-bundle/${{ matrix.game }}.app.zip
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs:
+      - build-windows-cross
+      - build-linux-gnu
+      - build-macos-universal
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: build-windows-cross-*
+          path: windows
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: build-linux-gnu-*
+          path: linux
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: build-macos-*
+          path: macos
+
+      - name: Move files
+        if: contains(github.ref_name, 'test-')
+        run: |
+          mv windows build-windows-cross-game
+          mkdir windows
+          mv build-windows-cross-game windows/
+          mv linux build-linux-gnu-game
+          mkdir linux
+          mv build-linux-gnu-game linux/
+          mv macos build-macos-universal-game
+          mkdir macos
+          mv build-macos-universal-game macos/
+
+      - name: Prepare windows builds
+        working-directory: windows
+        run: |
+          for dir in */; do
+            cd "$dir"
+            name="${dir%/}"
+            game="${name#build-windows-cross-}"
+            zip -r "../../${game}.windows.zip" *.exe stdlib
+            cd ..
+          done
+
+      - name: Prepare linux builds
+        working-directory: linux
+        run: |
+          for dir in */; do
+            cd "$dir"
+            name="${dir%/}"
+            game="${name#build-linux-gnu-}"
+            bin=$(echo $game | sed 's/^\(.\)/\U\1/')
+            zip -r "../../${game}.linux.zip" ${bin} stdlib
+            cd ..
+          done
+
+      - name: Prepare macos builds
+        working-directory: macos
+        run: |
+          for dir in */; do
+            cd "$dir"
+            name="${dir%/}"
+            game="${name#build-macos-universal-}"
+            mv "${game}.app.zip" "../../${game}.macos.zip"
+            cd ..
+          done
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          fail_on_unmatched_files: true
+          files: |
+            *.windows.zip
+            *.linux.zip
+            *.macos.zip
