@@ -21,7 +21,7 @@ jobs:
       - name: Set matrix dynamically
         id: set-matrix
         run: |
-          if [[ "${{ github.ref_name }}" == "test-"* ]]; then
+          if [[ "${{ github.ref_type }}" != "tag" || "${{ github.ref_name }}" == "test-"* ]]; then
             games='["game"]'
           else
             games='["reborn", "rejuvenation", "desolation"]'
@@ -141,7 +141,7 @@ jobs:
           archive: false
 
   build-windows-msys2:
-    name: Windows MSYS2
+    name: Windows MSYS2 (${{ matrix.game }})
     runs-on: windows-latest
     needs: set-matrix
     strategy:
@@ -266,7 +266,7 @@ jobs:
           path: build/artifact
 
   build-windows-cross:
-    name: Windows ${{ matrix.arch_mkxpz }}
+    name: Windows ${{ matrix.arch_mkxpz }} (${{ matrix.game }})
     runs-on: ubuntu-latest
     needs: set-matrix
     strategy:
@@ -379,7 +379,7 @@ jobs:
           path: build/artifact
 
   build-linux-gnu:
-    name: ${{ matrix.distro }} ${{ matrix.suite }} ${{ matrix.arch_mkxpz }}
+    name: ${{ matrix.distro }} ${{ matrix.suite }} ${{ matrix.arch_mkxpz }} (${{ matrix.game }})
     runs-on: ubuntu-26.04
     needs: set-matrix
     strategy:
@@ -980,7 +980,7 @@ jobs:
           path: build/artifact
 
   build-macos:
-    name: macOS ${{ matrix.arch_mkxpz }}
+    name: macOS ${{ matrix.arch_mkxpz }} (${{ matrix.game }})
     runs-on: macos-latest
     needs: set-matrix
     strategy:
@@ -1060,7 +1060,7 @@ jobs:
           path: build/artifact-bundle
 
   build-macos-universal:
-    name: macOS universal
+    name: macOS universal (${{ matrix.game }})
     runs-on: macos-latest
     needs:
       - set-matrix
@@ -1141,6 +1141,7 @@ jobs:
       - build-windows-cross
       - build-linux-gnu
       - build-macos-universal
+    if: github.ref_type == 'tag'
     steps:
       - uses: actions/download-artifact@v8
         with:
