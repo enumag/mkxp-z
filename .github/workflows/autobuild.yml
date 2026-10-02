@@ -34,7 +34,7 @@ jobs:
             '{ include: [ $games[] | { game: ., cache: true, arch_mkxpz: "x86_64", arch_debian: "amd64", "cpu-family": "x86_64", cpu: "x86_64", endian: "little", distro: "ubuntu", suite: "xenial" } ] }')
 
           macos=$(jq --compact-output --null-input --argjson games "$games" \
-            '{ include: [ $games[] | { game: ., cache: true, arch_mkxpz: "arm64" }, { game: ., cache: true, arch_mkxpz: "x86_64" } ] }')
+            '{ include: [ $games[] | { game: ., cache: true, arch_mkxpz: "arm64", "cpu-family": "aarch64" }, { game: ., cache: true, arch_mkxpz: "x86_64", "cpu-family": "x86_64" } ] }')
           
           macos_universal=$(jq --compact-output --null-input --argjson games "$games" \
             '{ include: [ $games[] | { game: . } ] }')
@@ -247,6 +247,23 @@ jobs:
             exit 1
           fi
 
+      - name: Discord
+        uses: actions/checkout@v7
+        with:
+          repository: enumag/ruby_discord_sdk
+          path: ruby_discord_sdk
+          ref: main
+
+      - name: Build Discord Gem
+        shell: msys2 {0}
+        working-directory: ruby_discord_sdk
+        run: |
+          curl -O https://dl-game-sdk.discordapp.net/3.2.1/discord_game_sdk.zip
+          unzip -o discord_game_sdk.zip -d .
+          cp lib/x86_64/discord_game_sdk.dll .
+          ../build/subprojects/ruby-3_1_3/miniruby ./extconf.rb
+          make
+
       - name: Rename
         run: mv build/artifact/mkxp-z.x86_64.exe build/artifact/${{ steps.name.outputs.name }}.exe
 
@@ -359,6 +376,22 @@ jobs:
       - name: Prepare artifact
         run: |
           meson install -C build --no-rebuild --tags mkxp-z
+
+      - name: Discord
+        uses: actions/checkout@v7
+        with:
+          repository: enumag/ruby_discord_sdk
+          path: ruby_discord_sdk
+          ref: main
+
+      - name: Build Discord Gem
+        working-directory: ruby_discord_sdk
+        run: |
+          curl -O https://dl-game-sdk.discordapp.net/3.2.1/discord_game_sdk.zip
+          unzip -o discord_game_sdk.zip -d .
+          cp lib/x86_64/discord_game_sdk.dll .
+          ../build/subprojects/ruby-3_1_3/miniruby ./extconf.rb
+          make
 
       - name: Rename
         run: mv build/artifact/mkxp-z.${{ matrix.arch_mkxpz }}.exe build/artifact/${{ steps.name.outputs.name }}.exe
@@ -554,6 +587,22 @@ jobs:
       - name: Prepare artifact
         run: |
           meson install -C build --no-rebuild --tags mkxp-z
+
+      - name: Discord
+        uses: actions/checkout@v7
+        with:
+          repository: enumag/ruby_discord_sdk
+          path: ruby_discord_sdk
+          ref: main
+
+      - name: Build Discord Gem
+        working-directory: ruby_discord_sdk
+        run: |
+          curl -O https://dl-game-sdk.discordapp.net/3.2.1/discord_game_sdk.zip
+          unzip -o discord_game_sdk.zip -d .
+          cp lib/x86_64/discord_game_sdk.so .
+          ../build/subprojects/ruby-3_1_3/miniruby ./extconf.rb
+          make
 
       - name: Rename
         run: mv build/artifact/mkxp-z.${{ matrix.arch_mkxpz }} build/artifact/${{ steps.name.outputs.name }}
@@ -1046,6 +1095,25 @@ jobs:
           meson install -C build --no-rebuild --tags mkxp-z-bundle
           mv build/artifact build/artifact-bundle
           meson install -C build --no-rebuild --tags mkxp-z
+
+      - name: Discord
+        uses: actions/checkout@v7
+        with:
+          repository: enumag/ruby_discord_sdk
+          path: ruby_discord_sdk
+          ref: main
+
+      - name: Build Discord Gem
+        working-directory: ruby_discord_sdk
+        run: |
+          curl -O https://dl-game-sdk.discordapp.net/3.2.1/discord_game_sdk.zip
+          unzip -o discord_game_sdk.zip -d .
+          lipo -output libdiscord_game_sdk.dylib -create lib/x86_64/discord_game_sdk.dylib lib/aarch64/discord_game_sdk.dylib
+          ../build/subprojects/ruby-3_1_3/miniruby ./extconf.rb
+          make
+          mkdir ../build/artifact-bundle/mkxp-z.${{ matrix.cpu-family }}.app/Contents/Game/gems
+          cp discord.bundle ../build/artifact-bundle/mkxp-z.${{ matrix.cpu-family }}.app/Contents/Game/gems
+          cp libdiscord_game_sdk.dylib ../build/artifact-bundle/mkxp-z.${{ matrix.cpu-family }}.app/Contents/Frameworks/discord_game_sdk.dylib
 
       - name: Upload bundle artifact
         uses: actions/upload-artifact@v7
