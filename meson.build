@@ -7,7 +7,10 @@ gplv3_features = []
 
 host_system = host_machine.system()
 host_endian = host_machine.endian()
-exe_name = meson.project_name() + '.' + host_machine.cpu()
+
+# Final exe name needs to be known and set during compilation. Discord gem is unable to link to a renamed exe on Windows.
+exe_name = get_option('exe_name')
+# exe_name = meson.project_name() + '.' + host_machine.cpu()
 
 is_bsd = host_system in ['dragonfly', 'freebsd', 'netbsd', 'openbsd']
 is_unix = is_bsd or host_system in ['linux']
