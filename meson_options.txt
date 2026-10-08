@@ -1,3 +1,5 @@
+option('exe_name', type: 'string', description: 'Name of the mkxp-z executable, excluding the file extension if there is one')
+
 option('mri_version', type: 'string', value: '3.1', description: 'Version of MRI to link with')
 option('force32', type: 'boolean', value: false, description: 'Force compiler to build a 32-bit executable')
 

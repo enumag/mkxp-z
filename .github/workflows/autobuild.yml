@@ -187,7 +187,7 @@ jobs:
       - name: Configure
         shell: msys2 {0}
         run: |
-          meson setup --prefix "$(pwd)/build/artifact" --buildtype release -Dstrip=true -Db_lto=true build
+          meson setup --prefix "$(pwd)/build/artifact" --buildtype release -Dstrip=true -Db_lto=true -Dexe_name=${{ steps.name.outputs.name }} build
 
       - name: Build
         id: build
@@ -277,9 +277,6 @@ jobs:
           cp ruby_discord_sdk/discord.so build/artifact/gems/discord.so
           cp ruby_discord_sdk/lib/x86_64/discord_game_sdk.dll build/artifact/discord_game_sdk.dll
 
-      - name: Rename
-        run: mv build/artifact/mkxp-z.x86_64.exe build/artifact/${{ steps.name.outputs.name }}.exe
-
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
@@ -353,7 +350,7 @@ jobs:
           else
             compiler=gcc
           fi
-          meson setup --prefix "$(pwd)/build/artifact" --cross-file windows/meson-$compiler-${{ matrix.arch_mkxpz }}.txt --buildtype release -Dstrip=true -Db_lto=true build
+          meson setup --prefix "$(pwd)/build/artifact" --cross-file windows/meson-$compiler-${{ matrix.arch_mkxpz }}.txt --buildtype release -Dstrip=true -Db_lto=true -Dexe_name=${{ steps.name.outputs.name }} build
 
       - name: Build
         id: build
@@ -407,9 +404,6 @@ jobs:
           mkdir build/artifact/gems
           cp ruby_discord_sdk/discord.so build/artifact/gems/discord.so
           cp ruby_discord_sdk/lib/${{ matrix.arch_mkxpz }}/discord_game_sdk.dll build/artifact/discord_game_sdk.dll
-
-      - name: Rename
-        run: mv build/artifact/mkxp-z.${{ matrix.arch_mkxpz }}.exe build/artifact/${{ steps.name.outputs.name }}.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
@@ -566,7 +560,7 @@ jobs:
           else
             arm_neon=disabled
           fi
-          meson setup --prefix "$(pwd)/build/artifact" --cross-file ${{ runner.temp }}/cross.toml -Darm_neon=$arm_neon --buildtype release -Dstrip=true -Db_lto=true build
+          meson setup --prefix "$(pwd)/build/artifact" --cross-file ${{ runner.temp }}/cross.toml -Darm_neon=$arm_neon --buildtype release -Dstrip=true -Db_lto=true -Dexe_name=${{ steps.name.outputs.name }} build
 
       - name: Build
         id: build
@@ -620,9 +614,6 @@ jobs:
           mkdir build/artifact/gems
           cp ruby_discord_sdk/discord.so build/artifact/gems/discord.so
           cp ruby_discord_sdk/lib/${{ matrix.arch_mkxpz }}/discord_game_sdk.so build/artifact/discord_game_sdk.so
-
-      - name: Rename
-        run: mv build/artifact/mkxp-z.${{ matrix.arch_mkxpz }} build/artifact/${{ steps.name.outputs.name }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
@@ -1051,6 +1042,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
+      - name: Name
+        id: name
+        run: echo name=$(echo ${{ matrix.game }} | perl -pe '$_ = ucfirst($_)') >> $GITHUB_OUTPUT
+
       - name: Icon
         if: "matrix.game != 'game'"
         run: |
@@ -1074,7 +1069,7 @@ jobs:
 
       - name: Configure
         run: |
-          meson setup --prefix "$(pwd)/build/artifact" --cross-file macos/meson-${{ matrix.arch_mkxpz }}.txt --buildtype release -Dstrip=true -Db_lto=true build
+          meson setup --prefix "$(pwd)/build/artifact" --cross-file macos/meson-${{ matrix.arch_mkxpz }}.txt --buildtype release -Dstrip=true -Db_lto=true -Dexe_name=${{ steps.name.outputs.name }} build
 
       - name: Build
         id: build
@@ -1194,12 +1189,11 @@ jobs:
           lipo artifact-arm64/discord_game_sdk.dylib artifact-x86_64/discord_game_sdk.dylib -output discord_game_sdk.dylib -create
 
           # Create universal mkxp-z artifact
-          lipo artifact-arm64/mkxp-z.aarch64 artifact-x86_64/mkxp-z.x86_64 -output mkxp-z.universal -create
+          lipo artifact-arm64/${{ steps.name.outputs.name }} artifact-x86_64/${{ steps.name.outputs.name }} -output ${{ steps.name.outputs.name }} -create
           cp -p -R artifact-arm64/* artifact-x86_64/
           mv artifact-x86_64 artifact
-          rm artifact/mkxp-z.aarch64
-          rm artifact/mkxp-z.x86_64
-          mv mkxp-z.universal artifact/
+          rm artifact/${{ steps.name.outputs.name }}
+          mv ${{ steps.name.outputs.name }} artifact/
 
           # Move universal Discord binaries
           mv discord.bundle artifact/gems/
@@ -1210,12 +1204,10 @@ jobs:
           lipo artifact-bundle-arm64/discord_game_sdk.dylib artifact-bundle-x86_64/discord_game_sdk.dylib -output discord_game_sdk.dylib -create
 
           # Create universal mkxp-z artifact-bundle
-          lipo artifact-bundle-arm64/mkxp-z.aarch64.app/Contents/MacOS/bundle_mkxp-z artifact-bundle-x86_64/mkxp-z.x86_64.app/Contents/MacOS/bundle_mkxp-z -output bundle_mkxp-z -create
-          mv artifact-bundle-arm64/mkxp-z.aarch64.app artifact-bundle-arm64/mkxp-z.universal.app
-          mv artifact-bundle-x86_64/mkxp-z.x86_64.app artifact-bundle-x86_64/mkxp-z.universal.app
+          lipo artifact-bundle-arm64/${{ steps.name.outputs.name }}.app/Contents/MacOS/bundle_mkxp-z artifact-bundle-x86_64/${{ steps.name.outputs.name }}.app/Contents/MacOS/bundle_mkxp-z -output bundle_mkxp-z -create
           cp -p -R artifact-bundle-arm64/* artifact-bundle-x86_64/
           mv artifact-bundle-x86_64 artifact-bundle
-          mv bundle_mkxp-z artifact-bundle/mkxp-z.universal.app/Contents/MacOS/
+          mv bundle_mkxp-z artifact-bundle/${{ steps.name.outputs.name }}.app/Contents/MacOS/
 
           # Move universal Discord binaries
           rm artifact-bundle/discord_game_sdk.dylib
@@ -1226,17 +1218,16 @@ jobs:
         working-directory: artifact-bundle
         run: |
           # Move files into the bundled app
-          mkdir mkxp-z.universal.app/Contents/Game
-          mkdir mkxp-z.universal.app/Contents/Frameworks
-          mv discord_game_sdk.dylib mkxp-z.universal.app/Contents/Frameworks/discord_game_sdk.dylib
-          mv gems mkxp-z.universal.app/Contents/Game/
-          mv scripts mkxp-z.universal.app/Contents/Game/
-          mv mkxp.json mkxp-z.universal.app/Contents/Game/
-          mv LICENSE.txt mkxp-z.universal.app/Contents/Game/
+          mkdir ${{ steps.name.outputs.name }}.app/Contents/Game
+          mkdir ${{ steps.name.outputs.name }}.app/Contents/Frameworks
+          mv discord_game_sdk.dylib ${{ steps.name.outputs.name }}.app/Contents/Frameworks/discord_game_sdk.dylib
+          mv gems ${{ steps.name.outputs.name }}.app/Contents/Game/
+          mv scripts ${{ steps.name.outputs.name }}.app/Contents/Game/
+          mv mkxp.json ${{ steps.name.outputs.name }}.app/Contents/Game/
+          mv LICENSE.txt ${{ steps.name.outputs.name }}.app/Contents/Game/
 
-          mkdir mkxp-z.universal.app/Contents/Resources/Ruby
-          mv stdlib mkxp-z.universal.app/Contents/Resources/Ruby/3.1.0
-          mv mkxp-z.universal.app ${{ steps.name.outputs.name }}.app
+          mkdir ${{ steps.name.outputs.name }}.app/Contents/Resources/Ruby
+          mv stdlib ${{ steps.name.outputs.name }}.app/Contents/Resources/Ruby/3.1.0
           ditto -c -k --sequesterRsrc --keepParent ${{ steps.name.outputs.name }}.app ${{ matrix.game }}.app.zip
 
       - name: Upload bundle artifact
