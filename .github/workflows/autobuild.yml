@@ -141,6 +141,7 @@ jobs:
           archive: false
 
   build-windows-msys2:
+    if: false
     name: Windows MSYS2 (${{ matrix.game }})
     runs-on: windows-latest
     needs: set-matrix
