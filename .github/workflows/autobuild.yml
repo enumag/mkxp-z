@@ -9,6 +9,11 @@ on:
       - 'test-*'
   workflow_dispatch:
 
+env:
+  build_options: "--buildtype release -Dstrip=true -Db_lto=true"
+  # build_options: "--buildtype debug"
+  # build_options: "--buildtype debugoptimized"
+
 jobs:
   set-matrix:
     runs-on: ubuntu-latest
@@ -188,7 +193,7 @@ jobs:
       - name: Configure
         shell: msys2 {0}
         run: |
-          meson setup --prefix "$(pwd)/build/artifact" --buildtype release -Dstrip=true -Db_lto=true -Dexe_name=${{ steps.name.outputs.name }} build
+          meson setup --prefix "$(pwd)/build/artifact" ${{ env.build_options }} -Dexe_name=${{ steps.name.outputs.name }} build
 
       - name: Build
         id: build
@@ -351,7 +356,7 @@ jobs:
           else
             compiler=gcc
           fi
-          meson setup --prefix "$(pwd)/build/artifact" --cross-file windows/meson-$compiler-${{ matrix.arch_mkxpz }}.txt --buildtype release -Dstrip=true -Db_lto=true -Dexe_name=${{ steps.name.outputs.name }} build
+          meson setup --prefix "$(pwd)/build/artifact" --cross-file windows/meson-$compiler-${{ matrix.arch_mkxpz }}.txt ${{ env.build_options }} -Dexe_name=${{ steps.name.outputs.name }} build
 
       - name: Build
         id: build
@@ -561,7 +566,7 @@ jobs:
           else
             arm_neon=disabled
           fi
-          meson setup --prefix "$(pwd)/build/artifact" --cross-file ${{ runner.temp }}/cross.toml -Darm_neon=$arm_neon --buildtype release -Dstrip=true -Db_lto=true -Dexe_name=${{ steps.name.outputs.name }} build
+          meson setup --prefix "$(pwd)/build/artifact" --cross-file ${{ runner.temp }}/cross.toml -Darm_neon=$arm_neon ${{ env.build_options }} -Dexe_name=${{ steps.name.outputs.name }} build
 
       - name: Build
         id: build
@@ -662,7 +667,7 @@ jobs:
 
       - name: Configure
         run: |
-          meson setup --prefix "$(pwd)/build/artifact" --buildtype release -Dstrip=true -Db_lto=true build
+          meson setup --prefix "$(pwd)/build/artifact" ${{ env.build_options }} build
 
       - name: Build
         id: build
@@ -773,7 +778,7 @@ jobs:
           else
             arm_neon=disabled
           fi
-          meson setup --prefix "$(pwd)/build/artifact" --cross-file linux/meson-${{ matrix.arch_mkxpz }}.txt -Darm_neon=$arm_neon --buildtype release -Dstrip=true -Db_lto=true build
+          meson setup --prefix "$(pwd)/build/artifact" --cross-file linux/meson-${{ matrix.arch_mkxpz }}.txt -Darm_neon=$arm_neon ${{ env.build_options }} build
 
       - name: Build
         id: build
@@ -1070,7 +1075,7 @@ jobs:
 
       - name: Configure
         run: |
-          meson setup --prefix "$(pwd)/build/artifact" --cross-file macos/meson-${{ matrix.arch_mkxpz }}.txt --buildtype release -Dstrip=true -Db_lto=true -Dexe_name=${{ steps.name.outputs.name }} build
+          meson setup --prefix "$(pwd)/build/artifact" --cross-file macos/meson-${{ matrix.arch_mkxpz }}.txt ${{ env.build_options }} -Dexe_name=${{ steps.name.outputs.name }} build
 
       - name: Build
         id: build
