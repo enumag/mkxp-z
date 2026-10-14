@@ -1229,8 +1229,6 @@ jobs:
           mv discord_game_sdk.dylib ${{ steps.name.outputs.name }}.app/Contents/Game/
           mv gems ${{ steps.name.outputs.name }}.app/Contents/Game/
           mv stdlib ${{ steps.name.outputs.name }}.app/Contents/Game/
-          mv scripts ${{ steps.name.outputs.name }}.app/Contents/Game/
-          mv mkxp.json ${{ steps.name.outputs.name }}.app/Contents/Game/
           mv LICENSE.txt ${{ steps.name.outputs.name }}.app/Contents/Game/
 
           ditto -c -k --sequesterRsrc --keepParent ${{ steps.name.outputs.name }}.app ${{ matrix.game }}.app.zip
@@ -1285,7 +1283,7 @@ jobs:
             cd "$dir"
             name="${dir%/}"
             game="${name#build-windows-cross-}"
-            zip -r "../../${game}.windows.zip" *.exe stdlib gems discord_game_sdk.dll scripts LICENSE.txt mkxp.json
+            zip -r "../../${game}.windows.zip" *.exe stdlib gems discord_game_sdk.dll LICENSE.txt
             cd ..
           done
 
@@ -1297,7 +1295,7 @@ jobs:
             name="${dir%/}"
             game="${name#build-linux-gnu-}"
             bin=$(echo $game | sed 's/^\(.\)/\U\1/')
-            zip -r "../../${game}.linux.zip" ${bin} stdlib gems discord_game_sdk.so scripts LICENSE.txt mkxp.json
+            zip -r "../../${game}.linux.zip" ${bin} stdlib gems discord_game_sdk.so LICENSE.txt
             cd ..
           done
 
