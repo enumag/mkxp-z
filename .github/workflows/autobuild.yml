@@ -254,6 +254,12 @@ jobs:
             exit 1
           fi
 
+      - name: Remove specifications
+        working-directory: build/artifact/stdlib
+        run: |
+          sed -i "s~Gem::Specification\.load_defaults~#Gem::Specification\.load_defaults~g" rubygems.rb
+          rm -rf gems
+
       - name: Discord
         uses: actions/checkout@v7
         with:
@@ -384,6 +390,12 @@ jobs:
       - name: Prepare artifact
         run: |
           meson install -C build --no-rebuild --tags mkxp-z
+
+      - name: Remove specifications
+        working-directory: build/artifact/stdlib
+        run: |
+          sed -i "s~Gem::Specification\.load_defaults~#Gem::Specification\.load_defaults~g" rubygems.rb
+          rm -rf gems
 
       - name: Discord
         uses: actions/checkout@v7
@@ -594,6 +606,12 @@ jobs:
       - name: Prepare artifact
         run: |
           meson install -C build --no-rebuild --tags mkxp-z
+
+      - name: Disable specifications
+        working-directory: build/artifact/stdlib
+        run: |
+          sed -i "s~Gem::Specification\.load_defaults~#Gem::Specification\.load_defaults~g" rubygems.rb
+          rm -rf gems
 
       - name: Discord
         uses: actions/checkout@v7
@@ -1105,6 +1123,18 @@ jobs:
           meson install -C build --no-rebuild --tags mkxp-z-bundle
           mv build/artifact build/artifact-bundle
           meson install -C build --no-rebuild --tags mkxp-z
+
+      - name: Remove specifications
+        working-directory: build/artifact/stdlib
+        run: |
+          sed -i '' "s~Gem::Specification\.load_defaults~#Gem::Specification\.load_defaults~g" rubygems.rb
+          rm -rf gems
+
+      - name: Remove specifications
+        working-directory: build/artifact-bundle/stdlib
+        run: |
+          sed -i '' "s~Gem::Specification\.load_defaults~#Gem::Specification\.load_defaults~g" rubygems.rb
+          rm -rf gems
 
       - name: Discord
         uses: actions/checkout@v7
