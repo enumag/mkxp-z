@@ -917,7 +917,11 @@ SettingsMenu::SettingsMenu(RGSSThreadData &rtData)
     // Set names to be shown in the menu
     {
 #define SET_BUTTON_NAME(n, b) vButtons[n].str = rtData.config.kbActionNames.b.c_str();
+        SET_BUTTON_NAME(0, up);
+        SET_BUTTON_NAME(1, down);
         SET_BUTTON_NAME(2, l);
+        SET_BUTTON_NAME(3, left);
+        SET_BUTTON_NAME(4, right);
         SET_BUTTON_NAME(5, r);
         SET_BUTTON_NAME(6, a);
         SET_BUTTON_NAME(7, b);
